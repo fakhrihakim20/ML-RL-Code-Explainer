@@ -1,0 +1,41 @@
+/* Editorial Design Tokens — Variant A */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Geist+Mono:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #FAF9F6; --bg2: #F3F2EE; --bg3: #ECEAE4; --bg-inv: #1A1A18;
+  --tx1: #1A1A18; --tx2: #4A4A45; --tx3: #8A8A80; --tx-inv: #FAF9F6;
+  --ac: #2A4A3A; --ac-light: #E8F0EB; --ac-mid: #B8D4C0; --ac-text: #1E3A2C;
+  --bd: #E0DED8; --bd2: #D0CEC8;
+  --ok: #3A8A5A; --warn: #C8782A; --err: #C04040; --info: #3A6AA0;
+  /* Section accent colors */
+  --sec-1: #2A7A5A; --sec-1-bg: #E6F4ED; --sec-1-bd: #A8D8C0;
+  --sec-2: #B8782A; --sec-2-bg: #FFF3E6; --sec-2-bd: #F0D0A0;
+  --sec-3: #4A5AAA; --sec-3-bg: #EAECF8; --sec-3-bd: #B0B8E0;
+  --sec-4: #AA4060; --sec-4-bg: #FCEEF2; --sec-4-bd: #E8B0C0;
+  --sec-5: #2A8A7A; --sec-5-bg: #E4F5F2; --sec-5-bd: #A0D8D0;
+  --sec-6: #6A6A80; --sec-6-bg: #F0F0F4; --sec-6-bd: #C0C0D0;
+  --display: 'DM Serif Display', serif;
+  --body: 'DM Sans', sans-serif;
+  --mono: 'Geist Mono', 'JetBrains Mono', monospace;
+  --r-sm: 4px; --r-md: 8px; --r-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-lg: -8px 0 32px rgba(0,0,0,0.06);
+}
+
+[data-theme="dark"] {
+  --bg: #141413; --bg2: #1C1C1A; --bg3: #252523; --bg-inv: #E5E5E0;
+  --tx1: #E5E5E0; --tx2: #A0A098; --tx3: #686860; --tx-inv: #141413;
+  --ac: #7AB89A; --ac-light: #1A2A22; --ac-mid: #3A5A4A; --ac-text: #8CCAA8;
+  --bd: #2A2A27; --bd2: #333330;
+  --ok: #5ACA7A; --warn: #E09040; --err: #E06060; --info: #5A9AD0;
+  --sec-1: #5ACA8A; --sec-1-bg: #162A22; --sec-1-bd: #2A5A42;
+  --sec-2: #E0A050; --sec-2-bg: #2A2218; --sec-2-bd: #5A4428;
+  --sec-3: #8A9AEA; --sec-3-bg: #1A1A30; --sec-3-bd: #3A3A6A;
+  --sec-4: #E07090; --sec-4-bg: #2A1820; --sec-4-bd: #5A2A3A;
+  --sec-5: #50D0C0; --sec-5-bg: #162A28; --sec-5-bd: #2A5A52;
+  --sec-6: #A0A0B8; --sec-6-bg: #1E1E28; --sec-6-bd: #3A3A48;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
+  --shadow-lg: -8px 0 32px rgba(0,0,0,0.4);
+}

@@ -1,0 +1,112 @@
+/* ============================================================
+   tokens.css — Notion-DNA Design Tokens
+   Researcher Tutor redesign
+   Accent: #285571 (steel blue, user-selected)
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap');
+
+:root {
+  /* ── Type ── */
+  --font-ui:   ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-serif: ui-serif, Georgia, "Times New Roman", serif;
+
+  /* Kept for backward-compat with app.js references */
+  --body:    ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --display: ui-serif, Georgia, "Times New Roman", serif;
+
+  /* ── Light palette (Notion off-whites) ── */
+  --bg:          #ffffff;
+  --bg2:         #f7f7f5;
+  --bg3:         #f0efec;
+  --bg-hover:    #f1f1ef;
+  --bg-selected: #e8e8e5;
+  --bg-inv:      #37352f;
+
+  /* ── Text ── */
+  --tx1: #37352f;
+  --tx2: #787672;
+  --tx3: #9b9a97;
+  --tx-inv: #ffffff;
+  --tx-placeholder: #b7b5b0;
+
+  /* ── Brand accent — steel blue #285571 ── */
+  --ac:       #285571;
+  --ac-hover: #1d3f55;
+  --ac-light: #e8f0f5;
+  --ac-mid:   #b0cedd;
+  --ac-text:  #1d3f55;
+
+  /* ── Borders ── */
+  --bd:  #e9e9e7;
+  --bd2: #d9d9d6;
+
+  /* ── Semantic ── */
+  --ok:   #3d9970;
+  --warn: #c8782a;
+  --err:  #e03e3e;
+  --info: #285571;
+
+  /* ── Section accent palette ── */
+  --sec-1: #2A7A5A; --sec-1-bg: #edf6f1; --sec-1-bd: #b8ddc9;
+  --sec-2: #B8782A; --sec-2-bg: #fdf4e8; --sec-2-bd: #f0d0a0;
+  --sec-3: #285571; --sec-3-bg: #eaf1f6; --sec-3-bd: #b0cedd;
+  --sec-4: #AA4060; --sec-4-bg: #fdf0f4; --sec-4-bd: #e8c0ce;
+  --sec-5: #2A8A7A; --sec-5-bg: #ecf7f5; --sec-5-bd: #b0d8d2;
+  --sec-6: #6A6A80; --sec-6-bg: #f2f2f5; --sec-6-bd: #c8c8d6;
+
+  /* ── Radius — rounded ── */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+
+  /* ── Shadows ── */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 3px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+
+  /* ── Layout ── */
+  --header-h: 45px;
+  --left-w:   520px;
+}
+
+/* ── Dark theme ── */
+[data-theme="dark"] {
+  --bg:          #191919;
+  --bg2:         #1f1f1f;
+  --bg3:         #272725;
+  --bg-hover:    #252523;
+  --bg-selected: #2d2d2b;
+  --bg-inv:      #e6e5e1;
+
+  --tx1: #e6e5e1;
+  --tx2: #9b9a97;
+  --tx3: #6b6a67;
+  --tx-inv: #191919;
+  --tx-placeholder: #4f4e4b;
+
+  --ac:       #5b9abd;
+  --ac-hover: #6aaece;
+  --ac-light: #182530;
+  --ac-mid:   #2e5a70;
+  --ac-text:  #7ab8d4;
+
+  --bd:  #2f2f2d;
+  --bd2: #3a3a38;
+
+  --ok:   #5ACA7A;
+  --warn: #e09040;
+  --err:  #e06060;
+
+  --sec-1: #5ACA8A; --sec-1-bg: #162a22; --sec-1-bd: #2a5a42;
+  --sec-2: #E0A050; --sec-2-bg: #2a2218; --sec-2-bd: #5a4428;
+  --sec-3: #5b9abd; --sec-3-bg: #162230; --sec-3-bd: #2a4a60;
+  --sec-4: #E07090; --sec-4-bg: #2a1820; --sec-4-bd: #5a2a3a;
+  --sec-5: #50D0C0; --sec-5-bg: #162a28; --sec-5-bd: #2a5a52;
+  --sec-6: #A0A0B8; --sec-6-bg: #1e1e28; --sec-6-bd: #3a3a48;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
+  --shadow-md: 0 3px 12px rgba(0,0,0,0.35);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.45);
+}

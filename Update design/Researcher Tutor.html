@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Researcher Tutor</title>
+
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <!-- Prism -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" id="prism-theme-css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <!-- Mermaid -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <!-- html2pdf -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    (function(){
+      const saved = localStorage.getItem('ml_theme');
+      const prefer = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      const theme = saved || prefer;
+      document.documentElement.setAttribute('data-theme', theme);
+      var mermaidTheme = theme === 'dark'
+        ? { theme: 'base', themeVariables: { primaryColor: '#2A2A27', primaryTextColor: '#E5E5E0', lineColor: '#555', primaryBorderColor: '#444', background: '#191919', mainBkg: '#191919', nodeBorder: '#444', clusterBkg: '#222', titleColor: '#E5E5E0', edgeLabelBackground: '#191919' }}
+        : { theme: 'base', themeVariables: { primaryColor: '#F3F2EE', primaryTextColor: '#1A1A18', lineColor: '#999', primaryBorderColor: '#D0CEC8', background: '#fff', mainBkg: '#fff', nodeBorder: '#D0CEC8', clusterBkg: '#ECEAE4', titleColor: '#1A1A18', edgeLabelBackground: '#fff' }};
+      mermaid.initialize({ startOnLoad: false, ...mermaidTheme });
+    })();
+  </script>
+
+  <link rel="stylesheet" href="output-styles.css">
+
+  <style>
+    /* ── NOTION DESIGN TOKENS ── */
+    :root {
+      /* Notion-style type stack */
+      --font-ui: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial, sans-serif, "Segoe UI Emoji", "Segoe UI Symbol";
+      --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      --font-serif: ui-serif, Georgia, "Times New Roman", serif;
+
+      /* Light palette — Notion-like off-whites with your green accent */
+      --bg:          #ffffff;
+      --bg-2:        #f7f7f5;
+      --bg-3:        #f0efec;
+      --bg-hover:    #f1f1ef;
+      --bg-selected: #e8e8e5;
+
+      --tx-1:  #37352f;
+      --tx-2:  #787672;
+      --tx-3:  #9b9a97;
+      --tx-placeholder: #b7b5b0;
+
+      /* Your green brand accent — kept on Notion neutral ground */
+      --ac:         #2A4A3A;
+      --ac-hover:   #1e3829;
+      --ac-light:   #e8f0eb;
+      --ac-mid:     #b8d4c0;
+      --ac-text:    #1E3A2C;
+
+      --bd:  #e9e9e7;
+      --bd-2: #d9d9d6;
+
+      --ok:   #3d9970;
+      --warn: #c8782a;
+      --err:  #e03e3e;
+
+      /* Section accent palette */
+      --sec-1: #2A7A5A; --sec-1-bg: #edf6f1; --sec-1-bd: #b8ddc9;
+      --sec-2: #B8782A; --sec-2-bg: #fdf4e8; --sec-2-bd: #f0d0a0;
+      --sec-3: #4A5AAA; --sec-3-bg: #eef0f9; --sec-3-bd: #c0c8e8;
+      --sec-4: #AA4060; --sec-4-bg: #fdf0f4; --sec-4-bd: #e8c0ce;
+      --sec-5: #2A8A7A; --sec-5-bg: #ecf7f5; --sec-5-bd: #b0d8d2;
+      --sec-6: #6A6A80; --sec-6-bg: #f2f2f5; --sec-6-bd: #c8c8d6;
+
+      --r-sm: 3px;
+      --r-md: 6px;
+      --r-lg: 8px;
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 3px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+
+      --sidebar-w: 240px;
+      --header-h: 45px;
+    }
+
+    [data-theme="dark"] {
+      --bg:          #191919;
+      --bg-2:        #1f1f1f;
+      --bg-3:        #272725;
+      --bg-hover:    #252523;
+      --bg-selected: #2d2d2b;
+
+      --tx-1: #e6e5e1;
+      --tx-2: #9b9a97;
+      --tx-3: #6b6a67;
+      --tx-placeholder: #4f4e4b;
+
+      --ac:        #7AB89A;
+      --ac-hover:  #8ecaaa;
+      --ac-light:  #182a22;
+      --ac-mid:    #3a5a4a;
+      --ac-text:   #8CCAA8;
+
+      --bd:  #2f2f2d;
+      --bd-2: #3a3a38;
+
+      --ok:   #5ACA7A;
+      --warn: #e09040;
+      --err:  #e06060;
+
+      --sec-1: #5ACA8A; --sec-1-bg: #162a22; --sec-1-bd: #2a5a42;
+      --sec-2: #E0A050; --sec-2-bg: #2a2218; --sec-2-bd: #5a4428;
+      --sec-3: #8A9AEA; --sec-3-bg: #1a1a30; --sec-3-bd: #3a3a6a;
+      --sec-4: #E07090; --sec-4-bg: #2a1820; --sec-4-bd: #5a2a3a;
+      --sec-5: #50D0C0; --sec-5-bg: #162a28; --sec-5-bd: #2a5a52;
+      --sec-6: #A0A0B8; --sec-6-bg: #1e1e28; --sec-6-bd: #3a3a48;
+
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
+      --shadow-md: 0 3px 12px rgba(0,0,0,0.35);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.45);
+    }
+
+    /* ── RESET ── */
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { font-size: 16px; }
+    body {
+      font-family: var(--font-ui);
+      background: var(--bg);
+      color: var(--tx-1);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── APP SHELL ── */
+    .app-shell {
+      display: grid;
+      grid-template-rows: var(--header-h) 1fr;
+      min-height: 100vh;
+    }
+
+    /* ── NOTION-STYLE TOP BAR ── */
+    .app-header {
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--bd);
+      background: var(--bg);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      background: var(--ac);
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .brand-icon svg { width: 12px; height: 12px; }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--tx-1);
+    }
+    .breadcrumb-sep { color: var(--tx-3); font-size: 12px; }
+    .breadcrumb-page { color: var(--tx-1); }
+    .breadcrumb-sub {
+      color: var(--tx-2);
+      font-size: 13px;
+      font-weight: 400;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hdr-btn {
+      height: 28px;
+      padding: 0 10px;
+      border-radius: var(--r-sm);
+      border: none;
+      background: transparent;
+      color: var(--tx-2);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.12s, color 0.12s;
+      white-space: nowrap;
+    }
+    .hdr-btn:hover { background: var(--bg-hover); color: var(--tx-1); }
+    .hdr-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .hdr-btn--primary {
+      background: var(--ac);
+      color: #fff;
+      font-weight: 500;
+    }
+    .hdr-btn--primary:hover { background: var(--ac-hover); color: #fff; }
+
+    .hdr-divider { width: 1px; height: 18px; background: var(--bd); }
+
+    /* ── SETUP DRAWER OVERLAY ── */
+    .drawer-overlay {
+      position: fixed; inset: 0; z-index: 199;
+      background: rgba(0,0,0,0.06);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+
+    /* ── SETUP DRAWER ── */
+    .setup-drawer {
+      position: fixed;
+      top: var(--header-h);
+      right: 0; bottom: 0;
+      width: 380px;
+      background: var(--bg);
+      border-left: 1px solid var(--bd);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.25s cubic-bezier(.4,0,.2,1);
+    }
+    .setup-drawer.open { transform: translateX(0); }
+
+    .drawer-header {
+      padding: 16px 20px 14px;
+      border-bottom: 1px solid var(--bd);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .drawer-title { font-size: 14px; font-weight: 600; color: var(--tx-1); }
+    .drawer-close {
+      width: 24px; height: 24px;
+      border: none; background: transparent;
+      cursor: pointer; color: var(--tx-3);
+      border-radius: var(--r-sm);
+      display: grid; place-items: center;
+      font-size: 14px;
+      transition: background 0.12s, color 0.12s;
+    }
+    .drawer-close:hover { background: var(--bg-hover); color: var(--tx-1); }
+
+    .drawer-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+
+    /* Provider tabs */
+    .provider-tabs { display: flex; gap: 2px; margin-bottom: 16px; }
+    .provider-tab {
+      flex: 1; height: 28px;
+      font-family: var(--font-ui);
+      font-size: 12px; font-weight: 500;
+      border: 1px solid var(--bd);
+      border-radius: var(--r-sm);
+      background: var(--bg);
+      color: var(--tx-2);
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .provider-tab:hover { background: var(--bg-hover); color: var(--tx-1); }
+    .provider-tab.active { background: var(--ac); color: #fff; border-color: transparent; }
+
+    /* Form elements */
+    .form-group { margin-bottom: 14px; }
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--tx-3);
+      margin-bottom: 5px;
+    }
+    input[type="password"],
+    input[type="text"],
+    select {
+      width: 100%;
+      height: 34px;
+      padding: 0 10px;
+      background: var(--bg-2);
+      border: 1px solid var(--bd);
+      border-radius: var(--r-sm);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      color: var(--tx-1);
+      outline: none;
+      transition: border-color 0.12s;
+    }
+    input:focus, select:focus { border-color: var(--ac); }
+    input::placeholder { color: var(--tx-placeholder); }
+    select { cursor: pointer; }
+    select option { background: var(--bg); }
+
+    .form-row { display: flex; gap: 8px; align-items: flex-end; }
+    .form-row .form-group { flex: 1; margin-bottom: 0; }
+
+    .save-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+    .btn-save {
+      height: 32px; padding: 0 16px;
+      background: var(--ac); color: #fff;
+      border: none; border-radius: var(--r-sm);
+      font-family: var(--font-ui);
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: background 0.12s;
+    }
+    .btn-save:hover { background: var(--ac-hover); }
+    .save-status { font-size: 12px; color: var(--ok); }
+
+    .btn-add {
+      height: 34px; padding: 0 12px;
+      background: var(--ac); color: #fff;
+      border: none; border-radius: var(--r-sm);
+      font-family: var(--font-ui);
+      font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: background 0.12s;
+      white-space: nowrap;
+    }
+    .btn-add:hover { background: var(--ac-hover); }
+
+    .setup-hint {
+      font-size: 11.5px;
+      color: var(--tx-3);
+      margin-top: 10px;
+      line-height: 1.5;
+    }
+    .setup-hint a { color: var(--ac); text-decoration: none; }
+    .setup-hint a:hover { text-decoration: underline; }
+
+    .custom-model-hint {
+      font-size: 11px; color: var(--tx-3);
+      margin-top: 5px; line-height: 1.4;
+    }
+    .custom-model-hint a { color: var(--ac); text-decoration: none; }
+
+    .model-select-group { display: none; }
+    .model-select-group.visible { display: block; }
+
+    /* OpenRouter limits */
+    .or-limits-card {
+      margin-top: 14px;
+      background: var(--bg-2);
+      border: 1px solid var(--bd);
+      border-radius: var(--r-md);
+      overflow: hidden;
+    }
+    .or-limits-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--bd);
+    }
+    .or-limits-title { font-size: 12px; font-weight: 600; color: var(--tx-1); }
+    .btn-check-limits {
+      padding: 4px 10px;
+      font-size: 11px; font-weight: 500;
+      font-family: var(--font-ui);
+      background: var(--ac); color: #fff;
+      border: none; border-radius: var(--r-sm);
+      cursor: pointer; transition: background 0.12s;
+    }
+    .btn-check-limits:hover { background: var(--ac-hover); }
+    .btn-check-limits:disabled { opacity: .5; cursor: not-allowed; }
+    .or-limits-loading {
+      display: none; align-items: center;
+      gap: 8px; padding: 12px 14px;
+      color: var(--tx-3); font-size: 12px;
+    }
+    .mini-spinner {
+      width: 14px; height: 14px;
+      border: 2px solid var(--bd);
+      border-top-color: var(--ac);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    .or-limits-body { display: none; padding: 12px 14px; }
+    .or-limits-grid { display: flex; flex-direction: column; gap: 5px; }
+    .or-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
+    .or-stat-row.tier-row { padding-bottom: 7px; margin-bottom: 3px; border-bottom: 1px solid var(--bd); }
+    .or-stat-label { font-size: 11.5px; color: var(--tx-3); }
+    .or-stat-value { font-size: 12px; font-weight: 600; color: var(--tx-1); font-family: var(--font-mono); }
+    .or-stat-value.tier-free { color: var(--warn); font-family: var(--font-ui); }
+    .or-stat-value.tier-paid { color: var(--ok); font-family: var(--font-ui); }
+    .or-stat-value.remaining { color: var(--ok); }
+    .or-limits-bar-wrap { width: 100%; height: 4px; background: var(--bg-3); border-radius: 2px; overflow: hidden; margin: 3px 0 5px; }
+    .or-limits-bar { height: 100%; border-radius: 2px; background: var(--ac); transition: width .5s; }
+    .or-usage-section { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--bd); }
+    .or-usage-title { display: block; font-size: 11px; font-weight: 600; color: var(--tx-2); margin-bottom: 8px; }
+    .or-usage-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .or-usage-item {
+      background: var(--bg);
+      border: 1px solid var(--bd);
+      border-radius: var(--r-sm);
+      padding: 8px 10px;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .or-usage-period { font-size: 10px; color: var(--tx-3); text-transform: uppercase; letter-spacing: .5px; font-weight: 500; }
+    .or-usage-amount { font-size: 13px; font-weight: 700; color: var(--tx-1); font-family: var(--font-mono); }
+    .or-limits-free-info { margin-top: 10px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--bd); border-radius: var(--r-sm); display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: var(--tx-2); }
+    .or-limits-free-info.paid { border-color: var(--ok); }
+    .free-badge { font-size: 11px; font-weight: 600; color: var(--warn); }
+    .free-badge.paid-badge { color: var(--ok); }
+    .or-limits-hint { font-size: 10.5px; color: var(--tx-3); font-style: italic; }
+    .or-limits-error { font-size: 12px; color: var(--err); padding: 3px 0; }
+
+    /* ── BODY ── */
+    .app-body {
+      display: grid;
+      grid-template-columns: var(--left-w, 480px) 1px minmax(0, 1fr);
+      min-height: calc(100vh - var(--header-h));
+    }
+
+    /* ── LEFT COL ── */
+    .left-col {
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      position: sticky;
+      top: var(--header-h);
+      height: calc(100vh - var(--header-h));
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* ── Notion page header inside left col ── */
+    .left-page-header {
+      padding: 28px 28px 0;
+    }
+
+    .page-icon {
+      font-size: 36px;
+      line-height: 1;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--tx-1);
+      line-height: 1.25;
+      margin-bottom: 4px;
+      letter-spacing: -.02em;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--tx-3);
+      margin-bottom: 20px;
+    }
+
+    /* ── Mode switcher — Notion inline tab feel ── */
+    .mode-switcher {
+      display: flex;
+      padding: 0 28px;
+      gap: 0;
+      border-bottom: 1px solid var(--bd);
+      margin-bottom: 0;
+    }
+
+    .mode-tab {
+      height: 34px;
+      padding: 0 12px;
+      border: none;
+      background: transparent;
+      color: var(--tx-3);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.12s, border-color 0.12s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .mode-tab:hover { color: var(--tx-1); }
+    .mode-tab.active { color: var(--tx-1); border-bottom-color: var(--tx-1); }
+
+    /* ── Input panels ── */
+    .input-panel { padding: 20px 28px 28px; display: none; }
+    .input-panel.active { display: block; }
+
+    /* ── Code editor ── */
+    .code-editor-wrap {
+      border: 1px solid var(--bd);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      background: var(--bg-2);
+      transition: border-color 0.12s, box-shadow 0.12s;
+      max-height: calc(100vh - 380px);
+      display: flex;
+    }
+    .code-editor-wrap:focus-within {
+      border-color: var(--ac);
+      box-shadow: 0 0 0 2px var(--ac-light);
+    }
+
+    .line-nums {
+      min-width: 40px;
+      padding: 14px 6px 14px 0;
+      text-align: right;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.75;
+      color: var(--tx-3);
+      border-right: 1px solid var(--bd);
+      background: var(--bg-3);
+      user-select: none;
+      overflow-y: auto;
+      flex-shrink: 0;
+      scrollbar-width: none;
+    }
+    .line-nums::-webkit-scrollbar { display: none; }
+    .ln-num { padding: 0 5px 0 0; }
+    .ln-num.ln-active { background: var(--ac); color: #fff; border-radius: 2px; font-weight: 700; }
+
+    .code-input-container {
+      position: relative;
+      flex: 1;
+      min-height: 200px;
+      background: transparent;
+      overflow: hidden;
+    }
+    .code-editor, #code-highlight {
+      margin: 0;
+      padding: 14px 16px;
+      font-family: var(--font-mono) !important;
+      font-size: 12.5px !important;
+      line-height: 1.75 !important;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: transparent !important;
+      white-space: pre !important;
+      overflow-wrap: normal !important;
+      word-spacing: normal !important;
+      tab-size: 4 !important;
+      text-shadow: none !important;
+      box-sizing: border-box;
+    }
+    .code-editor {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      color: transparent !important;
+      caret-color: var(--tx-1);
+      z-index: 2;
+      resize: none;
+      outline: none;
+      overflow: auto;
+    }
+    .code-editor::placeholder { color: var(--tx-placeholder); }
+    #code-highlight {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      color: var(--tx-1);
+      z-index: 1;
+      pointer-events: none;
+      overflow: auto;
+      scrollbar-width: none;
+    }
+    #code-highlight::-webkit-scrollbar { display: none; }
+    #code-highlight-inner {
+      font-family: inherit !important;
+      font-size: inherit !important;
+      line-height: inherit !important;
+      text-shadow: none !important;
+      white-space: inherit !important;
+    }
+
+    /* ── Action row ── */
+    .action-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .btn-primary {
+      flex: 1; height: 34px;
+      background: var(--ac); color: #fff;
+      border: none; border-radius: var(--r-sm);
+      font-family: var(--font-ui); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: background 0.12s;
+    }
+    .btn-primary:hover { background: var(--ac-hover); }
+    .btn-primary:disabled { opacity: .4; cursor: not-allowed; }
+
+    .btn-outline {
+      flex: 1; height: 34px;
+      background: transparent; color: var(--tx-1);
+      border: 1px solid var(--bd);
+      border-radius: var(--r-sm);
+      font-family: var(--font-ui); font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: background 0.12s, border-color 0.12s;
+    }
+    .btn-outline:hover { background: var(--bg-hover); border-color: var(--bd-2); }
+    .btn-outline:disabled { opacity: .4; cursor: not-allowed; }
+
+    .btn-ghost {
+      height: 34px; padding: 0 12px;
+      background: transparent; color: var(--tx-3);
+      border: 1px solid var(--bd);
+      border-radius: var(--r-sm);
+      font-family: var(--font-ui); font-size: 12px;
+      cursor: pointer; transition: background 0.12s, color 0.12s;
+      white-space: nowrap;
+    }
+    .btn-ghost:hover { color: var(--err); border-color: var(--err); background: transparent; }
+
+    /* ── Equation editor ── */
+    .equation-editor {
+      font-family: var(--font-ui) !important;
+      font-size: 14px !important;
+      line-height: 1.7 !important;
+      min-height: 140px;
+      white-space: pre-wrap !important;
+      color: var(--tx-1) !important;
+      position: relative !important;
+      overflow: auto !important;
+    }
+
+    .eq-input-tabs {
+      display: flex; gap: 2px;
+      margin-bottom: 12px;
+      background: var(--bg-2);
+      border: 1px solid var(--bd);
+      border-radius: var(--r-sm);
+      padding: 2px;
+    }
+    .eq-input-tab {
+      flex: 1; height: 26px;
+      font-family: var(--font-ui); font-size: 12px; font-weight: 500;
+      border: none; border-radius: 2px;
+      background: transparent; color: var(--tx-3);
+      cursor: pointer; transition: all 0.15s;
+    }
+    .eq-input-tab:hover { color: var(--tx-1); }
+    .eq-input-tab.active { background: var(--bg); color: var(--tx-1); box-shadow: var(--shadow-sm); font-weight: 600; }
+
+    .eq-subpanel { animation: fadeIn .2s; }
+
+    /* Drop zone */
+    .eq-drop-zone {
+      border: 1.5px dashed var(--bd-2);
+      border-radius: var(--r-lg);
+      padding: 24px 16px;
+      background: var(--bg-2);
+      transition: all 0.15s;
+      cursor: default;
+    }
+    .eq-drop-zone.drag-over { border-color: var(--ac); background: var(--ac-light); }
+    .eq-drop-idle { display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; }
+    .eq-drop-icon { font-size: 28px; line-height: 1; margin-bottom: 3px; }
+    .eq-drop-title { font-size: 13px; font-weight: 600; color: var(--tx-1); }
+    .eq-drop-hint { font-size: 11.5px; color: var(--tx-3); }
+    .eq-drop-btns { display: flex; gap: 6px; margin-top: 2px; }
+    .eq-drop-btn {
+      height: 28px; padding: 0 12px;
+      font-family: var(--font-ui); font-size: 11.5px; font-weight: 500;
+      border: 1px solid var(--bd); border-radius: var(--r-sm);
+      background: var(--bg); color: var(--tx-2);
+      cursor: pointer; transition: all 0.12s;
+    }
+    .eq-drop-btn:hover { border-color: var(--ac); color: var(--ac); background: var(--ac-light); }
+
+    /* Image preview */
+    .eq-img-preview { border: 1px solid var(--bd); border-radius: var(--r-lg); overflow: hidden; background: var(--bg-2); animation: fadeIn .2s; }
+    .eq-img-preview-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid var(--bd); }
+    .eq-img-preview-label { font-size: 11.5px; font-weight: 600; color: var(--tx-2); }
+    .eq-img-remove { background: none; border: 1px solid var(--bd); border-radius: var(--r-sm); padding: 2px 8px; font-size: 11px; color: var(--tx-3); cursor: pointer; transition: all 0.12s; font-family: var(--font-ui); }
+    .eq-img-remove:hover { color: var(--err); border-color: var(--err); }
+    .eq-img-thumb { width: 100%; max-height: 180px; object-fit: contain; display: block; background: var(--bg); padding: 10px; }
+    .eq-img-caption { font-size: 10.5px; color: var(--tx-3); padding: 5px 12px 8px; font-family: var(--font-mono); }
+
+    .eq-img-note {
+      display: flex; gap: 7px; align-items: flex-start;
+      margin-top: 8px; padding: 8px 10px;
+      background: var(--ac-light); border: 1px solid var(--ac-mid);
+      border-radius: var(--r-sm);
+      font-size: 11px; color: var(--tx-2); line-height: 1.5;
+    }
+    .eq-img-note strong { color: var(--ac); }
+
+    .eq-context-row { margin-top: 8px; animation: fadeIn .2s; }
+    .eq-context-field {
+      width: 100%; height: 32px; padding: 0 10px;
+      background: var(--bg-2); border: 1px solid var(--bd);
+      border-radius: var(--r-sm); font-family: var(--font-ui);
+      font-size: 12.5px; color: var(--tx-1); outline: none;
+      transition: border-color 0.12s;
+    }
+    .eq-context-field:focus { border-color: var(--ac); }
+    .eq-context-field::placeholder { color: var(--tx-placeholder); }
+
+    .equation-preview {
+      margin-top: 10px;
+      background: var(--bg-2);
+      border: 1px solid var(--bd);
+      border-radius: var(--r-sm);
+      padding: 12px 14px;
+      animation: fadeIn .2s;
+    }
+    .eq-preview-label { font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--tx-3); display: block; margin-bottom: 8px; }
+    #equation-preview-render { font-size: 16px; color: var(--tx-1); overflow-x: auto; text-align: center; min-height: 28px; }
+
+    /* ── RESIZER ── */
+    .app-resizer {
+      background: var(--bd);
+      cursor: col-resize;
+      position: relative;
+      transition: background 0.12s;
+    }
+    .app-resizer:hover, .app-resizer.dragging { background: var(--ac); }
+
+    /* ── RIGHT COL ── */
+    .right-col {
+      padding: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: var(--bg);
+    }
+
+    /* ── Right col page header ── */
+    .right-page-header {
+      padding: 28px 32px 0;
+      border-bottom: 1px solid var(--bd);
+    }
+
+    .results-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--tx-1);
+      letter-spacing: -.02em;
+      margin-bottom: 4px;
+    }
+
+    .results-meta {
+      font-size: 12px;
+      color: var(--tx-3);
+      margin-bottom: 16px;
+      font-family: var(--font-mono);
+    }
+    .results-meta span { color: var(--ac); }
+
+    /* ── Notion-style tabs ── */
+    .result-tabs {
+      display: flex;
+      gap: 0;
+    }
+
+    .result-tab {
+      height: 34px;
+      padding: 0 14px;
+      border: none;
+      background: transparent;
+      color: var(--tx-3);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.12s, border-color 0.12s;
+    }
+    .result-tab:hover { color: var(--tx-1); }
+    .result-tab.active { color: var(--tx-1); border-bottom-color: var(--tx-1); }
+
+    /* ── Tab content ── */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn .25s; }
+
+    .tab-body {
+      padding: 24px 32px 40px;
+    }
+
+    /* ── Loading ── */
+    .loading-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      gap: 16px;
+      animation: fadeIn .3s;
+    }
+    .loading-container.active { display: flex; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 2px solid var(--bd);
+      border-top-color: var(--ac);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    .loading-text { font-size: 13px; color: var(--tx-3); }
+
+    /* ── Error ── */
+    .error-card {
+      display: none;
+      margin: 28px 32px;
+      background: var(--bg-2);
+      border: 1px solid var(--err);
+      border-radius: var(--r-lg);
+      padding: 20px;
+      animation: fadeIn .3s;
+    }
+    .error-card.active { display: block; }
+    .error-card h3 { font-size: 14px; font-weight: 600; color: var(--err); margin-bottom: 6px; }
+    .error-card p { font-size: 13px; color: var(--tx-2); line-height: 1.6; }
+    .error-card .suggestion { margin-top: 8px; font-size: 11.5px; color: var(--tx-3); }
+
+    /* ── Placeholder ── */
+    .results-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 420px;
+      gap: 10px;
+      text-align: center;
+      padding: 0 32px;
+    }
+    .results-placeholder.hidden { display: none; }
+    .placeholder-icon {
+      width: 56px; height: 56px;
+      border: 1px solid var(--bd);
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: 22px; color: var(--tx-3);
+      margin-bottom: 6px;
+    }
+    .results-placeholder h3 { font-size: 16px; font-weight: 600; color: var(--tx-2); }
+    .results-placeholder p { font-size: 13px; color: var(--tx-3); max-width: 260px; line-height: 1.6; }
+    .results-placeholder p strong { color: var(--ac); }
+
+    /* ── Results section ── */
+    .results-section { display: none; animation: fadeIn .4s; }
+    .results-section.active { display: block; }
+
+    /* ── Explanation content ── */
+    .explanation-content { }
+    .explanation-content h3 {
+      font-size: 15px; font-weight: 600;
+      color: var(--tx-1);
+      margin: 24px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--bd);
+    }
+    .explanation-content h3:first-child { margin-top: 0; }
+
+    /* Notion-style callout section */
+    .explanation-section {
+      margin-bottom: 12px;
+      border-radius: var(--r-md);
+      border-left: 3px solid var(--sec-1);
+      background: var(--sec-1-bg);
+      padding: 13px 16px;
+    }
+    .explanation-section:nth-child(6n+2) { border-left-color: var(--sec-2); background: var(--sec-2-bg); }
+    .explanation-section:nth-child(6n+3) { border-left-color: var(--sec-3); background: var(--sec-3-bg); }
+    .explanation-section:nth-child(6n+4) { border-left-color: var(--sec-4); background: var(--sec-4-bg); }
+    .explanation-section:nth-child(6n+5) { border-left-color: var(--sec-5); background: var(--sec-5-bg); }
+    .explanation-section:nth-child(6n+6) { border-left-color: var(--sec-6); background: var(--sec-6-bg); }
+    .explanation-section h3 { margin: 0 0 6px !important; padding: 0 !important; border: none !important; font-size: 13.5px; }
+    .explanation-section p, .explanation-section li { font-size: 13.5px; color: var(--tx-2); line-height: 1.7; }
+    .explanation-section ul, .explanation-section ol { padding-left: 18px; margin-top: 5px; }
+    .explanation-section li { margin-bottom: 3px; }
+    .explanation-section strong { color: var(--tx-1); font-weight: 600; }
+    .explanation-section code { font-family: var(--font-mono); font-size: 11.5px; background: var(--bg); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--bd); color: var(--sec-1); font-weight: 500; }
+
+    /* Code blocks */
+    .explanation-content pre {
+      background: var(--bg-3);
+      border: 1px solid var(--bd);
+      border-radius: var(--r-sm);
+      padding: 14px 16px;
+      overflow-x: auto;
+      margin: 10px 0;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+    .explanation-content pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+
+    /* Line refs */
+    .line-ref {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: var(--ac-light); border: 1px solid var(--ac-mid);
+      color: var(--ac); border-radius: 3px; padding: 0 6px;
+      font-size: 11px; font-family: var(--font-mono); font-weight: 600;
+      cursor: pointer; transition: all 0.12s; white-space: nowrap;
+    }
+    .line-ref:hover { background: var(--ac-mid); }
+    .line-ref::before { content: '↗'; font-size: .7em; opacity: .7; }
+
+    /* ── Diagrams ── */
+    .diagrams-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+    .diagram-card {
+      background: var(--bg-2);
+      border: 1px solid var(--bd);
+      border-radius: var(--r-lg);
+      padding: 16px;
+    }
+    .diagram-card h4 { font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--tx-3); margin-bottom: 10px; }
+    .diagram-container {
+      background: var(--bg);
+      border: 1px solid var(--bd);
+      border-radius: var(--r-sm);
+      min-height: 140px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: auto; padding: 10px;
+      cursor: grab;
+    }
+    .diagram-container:active { cursor: grabbing; }
+    .diagram-container .mermaid { display: flex; justify-content: center; transform-origin: center; transition: transform .2s; }
+    .diagram-container .mermaid svg { max-width: none; height: auto; }
+    .diagram-toolbar { display: flex; gap: 4px; margin-bottom: 8px; justify-content: flex-end; }
+    .diagram-btn {
+      background: var(--bg);
+      border: 1px solid var(--bd);
+      color: var(--tx-3);
+      padding: 3px 8px;
+      border-radius: var(--r-sm);
+      font-size: 10.5px;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .diagram-btn:hover { background: var(--bg-hover); color: var(--tx-1); }
+
+    .walkthrough-card {
+      background: var(--bg-2);
+      border: 1px solid var(--bd);
+      border-radius: var(--r-lg);
+      padding: 20px;
+    }
+    .walkthrough-card h4 { font-size: 13px; font-weight: 600; color: var(--tx-1); margin-bottom: 14px; }
+    .walkthrough-card ol { padding-left: 20px; }
+    .walkthrough-card li { font-size: 13.5px; color: var(--tx-2); line-height: 1.7; margin-bottom: 5px; }
+    .walkthrough-card li::marker { color: var(--ac); font-weight: 700; font-family: var(--font-mono); }
+
+    .mermaid-fallback { padding: 6px 0; }
+    .mermaid-fallback-label { color: var(--warn); font-size: 12px; font-weight: 500; margin-bottom: 8px; }
+    .mermaid-fallback-code { background: var(--bg-2); border: 1px solid var(--bd); border-radius: var(--r-sm); padding: 12px; overflow-x: auto; font-family: var(--font-mono); font-size: 11px; color: var(--tx-2); line-height: 1.6; white-space: pre-wrap; }
+
+    /* ── Breakdown styles (override output-styles with Notion tokens) ── */
+    .breakdown-item { border-left-color: var(--sec-1); }
+    .breakdown-item:nth-child(6n+2) { border-left-color: var(--sec-2); }
+    .breakdown-item:nth-child(6n+3) { border-left-color: var(--sec-3); }
+    .breakdown-item:nth-child(6n+4) { border-left-color: var(--sec-4); }
+    .breakdown-item:nth-child(6n+5) { border-left-color: var(--sec-5); }
+    .breakdown-item:nth-child(6n+6) { border-left-color: var(--sec-6); }
+    .breakdown-item-header { background: var(--bg-2); }
+    .breakdown-item-header:hover { background: var(--bg-hover); }
+    .breakdown-item-header strong { font-size: 13px; color: var(--tx-1); }
+    .sec-dot { background: var(--sec-1); }
+    .breakdown-item:nth-child(6n+2) .sec-dot { background: var(--sec-2); }
+    .breakdown-item:nth-child(6n+3) .sec-dot { background: var(--sec-3); }
+    .breakdown-item:nth-child(6n+4) .sec-dot { background: var(--sec-4); }
+    .breakdown-item:nth-child(6n+5) .sec-dot { background: var(--sec-5); }
+    .breakdown-item:nth-child(6n+6) .sec-dot { background: var(--sec-6); }
+    .breakdown-item-body { border-top-color: var(--bd); font-size: 13px; color: var(--tx-2); }
+    .breakdown-sub-list li { font-size: 13px; color: var(--tx-2); background: var(--bg); border-left-color: var(--ac-mid); }
+    .breakdown-sub-list li code { font-family: var(--font-mono); font-size: 11px; }
+
+    /* ── Equation sections ── */
+    .eq-source-card {
+      background: var(--bg-2);
+      border: 1px solid var(--bd);
+      border-radius: var(--r-lg);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .eq-source-label { font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--tx-3); display: block; margin-bottom: 10px; }
+    .eq-source-render { font-size: 20px; color: var(--tx-1); overflow-x: auto; line-height: 1.6; }
+    .eq-source-card--image { padding: 14px; }
+    .eq-source-image { max-width: 100%; max-height: 160px; object-fit: contain; border-radius: var(--r-sm); margin-top: 8px; display: block; border: 1px solid var(--bd); }
+
+    .eq-symbol-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; margin-top: 3px; }
+    .eq-symbol-card { background: var(--bg-2); border: 1px solid var(--bd); border-radius: var(--r-sm); padding: 11px 13px; transition: border-color .12s; }
+    .eq-symbol-card:hover { border-color: var(--ac-mid); }
+    .eq-symbol-glyph { font-size: 18px; font-weight: 700; color: var(--ac); font-family: var(--font-mono); margin-bottom: 5px; }
+    .eq-symbol-def { font-size: 12px; color: var(--tx-2); line-height: 1.5; margin-bottom: 5px; }
+
+    .eq-intuition-body { background: var(--sec-2-bg); border-radius: var(--r-sm); padding: 14px 16px; border-left: 3px solid var(--sec-2); }
+    .eq-intuition-body p { font-size: 13.5px; color: var(--tx-1); line-height: 1.75; margin-bottom: 8px; }
+    .eq-intuition-body p:last-child { margin-bottom: 0; }
+
+    .eq-app-card { background: var(--bg-2); border: 1px solid var(--bd); border-radius: var(--r-sm); padding: 11px 13px; font-size: 12.5px; color: var(--tx-2); line-height: 1.6; transition: border-color .12s; }
+    .eq-app-card:hover { border-color: var(--ac-mid); }
+    .eq-app-card strong { color: var(--tx-1); display: block; margin-bottom: 2px; font-size: 13px; }
+
+    .eq-step .roadmap-num { background: var(--ac); color: #fff; font-weight: 700; }
+    .eq-step .roadmap-content { font-size: 13px; line-height: 1.65; }
+
+    /* ── Export toolbar ── */
+    #toolbar-explanation, #toolbar-equation-export {
+      display: none;
+      justify-content: flex-end;
+      margin-bottom: 14px;
+      gap: 6px;
+    }
+
+    /* ── Toast ── */
+    .eq-toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--tx-1); color: var(--bg);
+      padding: 8px 18px;
+      border-radius: var(--r-lg);
+      font-size: 12.5px; font-family: var(--font-ui); font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      opacity: 0; pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      z-index: 9999; white-space: nowrap;
+    }
+    .eq-toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Animations ── */
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── KaTeX dark mode ── */
+    [data-theme="dark"] .katex { color: var(--tx-1); }
+
+    /* ── Prism light override ── */
+    [data-theme="light"] code[class*="language-"],
+    [data-theme="light"] pre[class*="language-"] { color: #24292e; }
+    [data-theme="light"] .token.comment { color: #6a737d; font-style: italic; }
+    [data-theme="light"] .token.string, [data-theme="light"] .token.attr-value { color: #032f62; }
+    [data-theme="light"] .token.keyword { color: #008eb0; }
+    [data-theme="light"] .token.function, [data-theme="light"] .token.deleted { color: #d73a49; }
+    [data-theme="light"] .token.number, [data-theme="light"] .token.boolean { color: #d73a49; }
+    [data-theme="light"] .token.class-name { color: #d73a49; }
+    [data-theme="light"] .token.builtin { color: #6f42c1; }
+
+    /* ── Responsive ── */
+    @media (max-width: 960px) {
+      .app-body { grid-template-columns: 1fr; }
+      .left-col { position: static; height: auto; }
+      .right-col { border-top: 1px solid var(--bd); }
+      .app-resizer { display: none; }
+      .diagrams-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ─── VARIATION A: Default "Notion Classic" ─────────────── */
+    /* Left col has subtle bg-2, right is clean white */
+    body.var-a .left-col { background: var(--bg-2); border-right: 1px solid var(--bd); }
+    body.var-a .right-col { background: var(--bg); }
+    body.var-a .page-title { font-family: var(--font-ui); }
+
+    /* ─── VARIATION B: "Notion Editorial" ───────────────────── */
+    /* Full-bleed left side with serif page title */
+    body.var-b .left-col { background: var(--bg); border-right: 1px solid var(--bd); }
+    body.var-b .right-col { background: var(--bg-2); }
+    body.var-b .page-title { font-family: var(--font-serif); font-size: 26px; }
+    body.var-b .results-title { font-family: var(--font-serif); }
+    body.var-b .result-tab.active { border-bottom-color: var(--ac); color: var(--ac); }
+    body.var-b .mode-tab.active { border-bottom-color: var(--ac); color: var(--ac); }
+    body.var-b .tab-body { background: var(--bg); border: 1px solid var(--bd); border-radius: var(--r-lg); margin: 16px; padding: 24px; }
+
+    /* ─── VARIATION C: "Notion Minimal" ─────────────────────── */
+    /* Full white, no backgrounds, ultra-clean */
+    body.var-c .left-col { background: var(--bg); border-right: none; }
+    body.var-c .right-col { background: var(--bg); }
+    body.var-c .code-editor-wrap { background: var(--bg); border: 1.5px solid var(--bd-2); }
+    body.var-c .mode-switcher { border-bottom: none; }
+    body.var-c .left-page-header { padding-bottom: 0; }
+    body.var-c .app-header { border-bottom: none; box-shadow: 0 1px 0 var(--bd); }
+    body.var-c .right-page-header { border-bottom: none; }
+    body.var-c .result-tabs { border-bottom: 1px solid var(--bd); }
+    body.var-c .result-tab.active { border-bottom-color: var(--ac); color: var(--ac); }
+    body.var-c .mode-tab.active { border-bottom-color: var(--ac); color: var(--ac); }
+    body.var-c .action-row { gap: 8px; }
+    body.var-c .btn-primary { border-radius: var(--r-sm); }
+    body.var-c .app-resizer { background: transparent; border-left: 1px solid var(--bd); }
+    body.var-c .app-resizer:hover { background: var(--ac-light); border-left-color: var(--ac); }
+    body.var-c .diagram-card { border-color: var(--bd); background: var(--bg); }
+    body.var-c .walkthrough-card { background: var(--bg); }
+
+    /* ── Tweaks panel override to match Notion style ── */
+    #tweak-panel-root { font-family: var(--font-ui) !important; }
+  </style>
+</head>
+<body class="var-a">
+
+  <!-- React + Babel for Tweaks panel -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <div class="app-shell">
+
+    <!-- ── TOP BAR ── -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="breadcrumb">
+          <span class="breadcrumb-page">Researcher Tutor</span>
+          <span class="breadcrumb-sep">›</span>
+          <span class="breadcrumb-sub" id="breadcrumb-mode">Code Explainer</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="hdr-btn" id="setup-toggle-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          API Setup
+        </button>
+        <div class="hdr-divider"></div>
+        <button class="hdr-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="theme-icon-moon">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="theme-icon-sun" style="display:none">
+            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Drawer overlay -->
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+
+    <!-- Setup drawer -->
+    <div class="setup-drawer" id="setup-drawer">
+      <div class="drawer-header">
+        <span class="drawer-title">API Setup</span>
+        <button class="drawer-close" id="drawer-close">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="provider-tabs">
+          <button class="provider-tab active" data-provider="gemini">✨ Gemini</button>
+          <button class="provider-tab" data-provider="openrouter">🔀 OpenRouter</button>
+          <button class="provider-tab" data-provider="huggingface">🤗 HF</button>
+        </div>
+
+        <div id="gemini-section" class="active">
+          <div class="form-group">
+            <label>Gemini API Key</label>
+            <input type="password" id="gemini-token" placeholder="AIza...">
+          </div>
+          <div style="display:none;"><input type="hidden" id="gemini-model" value="gemini-2.5-flash"></div>
+        </div>
+
+        <div id="hf-section" style="display:none;">
+          <div class="form-group">
+            <label>Hugging Face Token</label>
+            <input type="password" id="hf-token" placeholder="hf_...">
+          </div>
+          <div class="form-group">
+            <label>Model ID</label>
+            <input type="text" id="hf-model" placeholder="meta-llama/Llama-3.2-3B-Instruct" value="meta-llama/Llama-3.2-3B-Instruct">
+            <p class="custom-model-hint" style="color:var(--warn);margin-top:5px">HF free tier no longer supports most large LLMs. Use OpenRouter instead.</p>
+          </div>
+        </div>
+
+        <div id="or-section" style="display:none;">
+          <div class="form-group">
+            <label>OpenRouter API Key</label>
+            <input type="password" id="or-token" placeholder="sk-or-v1-...">
+          </div>
+          <div class="form-group model-select-group">
+            <label for="or-model">Model</label>
+            <select id="or-model"></select>
+          </div>
+          <div class="form-group model-select-group custom-model-group">
+            <label for="custom-model">Add Custom Model</label>
+            <div class="form-row">
+              <div class="form-group">
+                <input type="text" id="custom-model" placeholder="e.g. openai/gpt-4o-mini">
+              </div>
+              <button class="btn-add" id="btn-add-model">+ Add</button>
+            </div>
+            <p class="custom-model-hint">Browse at <a href="https://openrouter.ai/models" target="_blank">openrouter.ai/models</a></p>
+          </div>
+          <div class="or-limits-card" id="or-limits-card">
+            <div class="or-limits-header">
+              <span class="or-limits-title">API Usage & Limits</span>
+              <button class="btn-check-limits" id="btn-check-limits" onclick="checkOpenRouterLimits()">Check</button>
+            </div>
+            <div class="or-limits-loading" id="or-limits-loading">
+              <div class="mini-spinner"></div><span>Loading...</span>
+            </div>
+            <div class="or-limits-body" id="or-limits-body"></div>
+          </div>
+        </div>
+
+        <div class="save-row" style="margin-top:14px;">
+          <button class="btn-save" id="btn-save">Save Token</button>
+          <span id="save-status" class="save-status"></span>
+        </div>
+        <p id="setup-hint" class="setup-hint">
+          💡 Get your free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a>
+        </p>
+      </div>
+    </div>
+
+    <!-- ── TWO-COLUMN BODY ── -->
+    <div class="app-body">
+
+      <!-- LEFT COLUMN -->
+      <div class="left-col">
+
+        <div class="left-page-header">
+          <span class="page-icon">🧠</span>
+          <h1 class="page-title">Researcher Tutor</h1>
+          <p class="page-subtitle">Explain ML &amp; RL code and equations like a world-class professor.</p>
+        </div>
+
+        <!-- Mode switcher -->
+        <div class="mode-switcher">
+          <button class="mode-tab active" id="mode-tab-code" data-mode="code">⌨ Code</button>
+          <button class="mode-tab" id="mode-tab-equation" data-mode="equation">∑ Equation</button>
+        </div>
+
+        <!-- Code Mode -->
+        <div id="input-panel-code" class="input-panel active">
+          <div class="code-editor-wrap" id="code-editor-wrap">
+            <div class="line-nums" id="line-nums"><div class="ln-num">1</div></div>
+            <div class="code-input-container">
+              <pre id="code-highlight" aria-hidden="true"><code class="language-python" id="code-highlight-inner"></code></pre>
+              <textarea id="code-input" class="code-editor" placeholder="# Paste your Python ML or RL code here&#10;&#10;import torch&#10;import torch.nn as nn&#10;&#10;class Policy(nn.Module):&#10;    ..." spellcheck="false"></textarea>
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="btn-primary" id="btn-explain">Explain</button>
+            <button class="btn-outline" id="btn-visualize">Visualize</button>
+            <button class="btn-ghost" id="btn-clear">Clear</button>
+          </div>
+        </div>
+
+        <!-- Equation Mode -->
+        <div id="input-panel-equation" class="input-panel" style="display:none;">
+          <div class="eq-input-tabs">
+            <button class="eq-input-tab active" id="eq-tab-type" data-eqmode="type">✏ Type</button>
+            <button class="eq-input-tab" id="eq-tab-image" data-eqmode="image">🖼 Image</button>
+          </div>
+
+          <div id="eq-panel-type" class="eq-subpanel">
+            <textarea id="equation-input" class="code-editor equation-editor" placeholder="Examples:&#10;  E = mc²&#10;  J(θ) = -E[log π(a|s) · Q(s,a)]&#10;  ∂L/∂w = -2·Σ(y - ŷ)·x&#10;  softmax(x_i) = e^x_i / Σe^x_j" spellcheck="false" style="position:relative;overflow:auto;height:140px;min-height:140px;color:var(--tx-1)!important;caret-color:var(--tx-1);background:var(--bg-2);border:1px solid var(--bd);border-radius:var(--r-sm);width:100%;resize:vertical;padding:10px 12px;font-family:var(--font-ui);font-size:13px;line-height:1.7;outline:none;"></textarea>
+            <div id="equation-preview" class="equation-preview" style="display:none;">
+              <span class="eq-preview-label">Preview</span>
+              <div id="equation-preview-render"></div>
+            </div>
+          </div>
+
+          <div id="eq-panel-image" class="eq-subpanel" style="display:none;">
+            <div class="eq-drop-zone" id="eq-drop-zone">
+              <input type="file" id="eq-file-input" accept="image/*" style="display:none;">
+              <div class="eq-drop-idle" id="eq-drop-idle">
+                <div class="eq-drop-icon">🖼</div>
+                <p class="eq-drop-title">Drop image here</p>
+                <p class="eq-drop-hint">or</p>
+                <div class="eq-drop-btns">
+                  <button class="eq-drop-btn" id="eq-btn-browse">Browse</button>
+                  <button class="eq-drop-btn" id="eq-btn-paste-img">Paste (Ctrl+V)</button>
+                </div>
+                <p class="eq-drop-hint" style="margin-top:8px;">JPG · PNG · WebP · Max 10 MB</p>
+              </div>
+            </div>
+            <div class="eq-img-preview" id="eq-img-preview" style="display:none;">
+              <div class="eq-img-preview-header">
+                <span class="eq-img-preview-label">Image attached</span>
+                <button class="eq-img-remove" id="eq-img-remove">✕ Remove</button>
+              </div>
+              <img id="eq-img-thumb" class="eq-img-thumb" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="">
+              <p class="eq-img-caption" id="eq-img-caption"></p>
+            </div>
+            <div class="eq-img-note" id="eq-img-note">
+              <span>📌</span>
+              <span>Image input requires <strong>Gemini</strong>. Works best with clear screenshots.</span>
+            </div>
+          </div>
+
+          <div class="eq-context-row" id="eq-context-row" style="display:none;">
+            <input type="text" id="eq-context-input" class="eq-context-field" placeholder="Optional: add context (e.g. 'This is from reinforcement learning')">
+          </div>
+
+          <div class="action-row" style="margin-top:12px;">
+            <button class="btn-primary" id="btn-explain-equation">Explain Equation</button>
+            <button class="btn-ghost" id="btn-clear-equation">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESIZER -->
+      <div class="app-resizer" id="app-resizer"></div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+
+        <!-- Loading -->
+        <div class="loading-container" id="loading-container-inner">
+          <div class="spinner"></div>
+          <p class="loading-text">Reading your code...</p>
+        </div>
+
+        <!-- Error -->
+        <div class="error-card" id="error-card-inner">
+          <h3>⚠ Something went wrong</h3>
+          <p id="error-message"></p>
+          <p class="suggestion">Check your API token in Setup and make sure it's valid.</p>
+        </div>
+
+        <!-- Placeholder -->
+        <div class="results-placeholder" id="results-placeholder">
+          <div class="placeholder-icon">~</div>
+          <h3>Nothing here yet</h3>
+          <p>Paste your Python ML or RL code on the left, then click <strong>Explain</strong> or <strong>Visualize</strong>.</p>
+        </div>
+
+        <!-- Results -->
+        <section class="results-section" id="results-section-inner">
+          <div class="right-page-header">
+            <h2 class="results-title">Results</h2>
+            <p class="results-meta" id="results-meta">Powered by: <span id="results-badge-text">—</span></p>
+            <div class="result-tabs">
+              <button class="result-tab active" data-tab="explanation">Code Explanation</button>
+              <button class="result-tab" data-tab="visual">Visual</button>
+              <button class="result-tab" data-tab="equation">Equation</button>
+            </div>
+          </div>
+
+          <!-- Explanation Tab -->
+          <div class="tab-content active" id="tab-explanation">
+            <div class="tab-body">
+              <div class="diagram-toolbar" id="toolbar-explanation">
+                <button class="diagram-btn" onclick="exportExplanation('md')">↓ MD</button>
+                <button class="diagram-btn" onclick="exportExplanation('pdf')">↓ PDF</button>
+              </div>
+              <div class="explanation-content" id="explanation-content"></div>
+            </div>
+          </div>
+
+          <!-- Visual Tab -->
+          <div class="tab-content" id="tab-visual">
+            <div class="tab-body">
+              <div class="diagrams-grid">
+                <div class="diagram-card">
+                  <h4>Concept Map</h4>
+                  <div class="diagram-toolbar" id="toolbar-concept" style="display:none;">
+                    <button class="diagram-btn" onclick="zoomDiagram('concept', 0.2)">+</button>
+                    <button class="diagram-btn" onclick="zoomDiagram('concept', -0.2)">−</button>
+                    <button class="diagram-btn" onclick="openDiagramInNewTab('concept')">↗</button>
+                    <button class="diagram-btn" onclick="saveDiagram('concept', 'svg')">SVG</button>
+                    <button class="diagram-btn" onclick="saveDiagram('concept', 'png')">PNG</button>
+                  </div>
+                  <div class="diagram-container">
+                    <div id="diagram-concept"></div>
+                  </div>
+                </div>
+                <div class="diagram-card">
+                  <h4>Execution Flow</h4>
+                  <div class="diagram-toolbar" id="toolbar-flowchart" style="display:none;">
+                    <button class="diagram-btn" onclick="zoomDiagram('flowchart', 0.2)">+</button>
+                    <button class="diagram-btn" onclick="zoomDiagram('flowchart', -0.2)">−</button>
+                    <button class="diagram-btn" onclick="openDiagramInNewTab('flowchart')">↗</button>
+                    <button class="diagram-btn" onclick="saveDiagram('flowchart', 'svg')">SVG</button>
+                    <button class="diagram-btn" onclick="saveDiagram('flowchart', 'png')">PNG</button>
+                  </div>
+                  <div class="diagram-container">
+                    <div id="diagram-flow"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="walkthrough-card">
+                <h4>Plain English Walkthrough</h4>
+                <div id="walkthrough-content"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Equation Tab -->
+          <div class="tab-content" id="tab-equation">
+            <div class="tab-body">
+              <div class="diagram-toolbar" id="toolbar-equation-export">
+                <button class="diagram-btn" onclick="exportEquation('md')">↓ MD</button>
+                <button class="diagram-btn" onclick="exportEquation('pdf')">↓ PDF</button>
+              </div>
+              <div class="explanation-content" id="equation-content"></div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- original app logic -->
+  <script src="app.js"></script>
+
+  <!-- patch: override results-badge reference from app.js -->
+  <script>
+    // Patch loading/error containers to match new IDs
+    (function patchAppJS() {
+      const origShow = window.showLoading || null;
+      // The app uses querySelector selectors for these elements
+      // They are already correct in this page since we used same class names
+    })();
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('ml_theme', next);
+      updateThemeIcon(next);
+      const prismTheme = document.getElementById('prism-theme-css');
+      if (prismTheme) {
+        prismTheme.href = next === 'dark'
+          ? 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css'
+          : 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css';
+      }
+      mermaid.initialize({
+        startOnLoad: false,
+        ...(next === 'dark'
+          ? { theme: 'base', themeVariables: { primaryColor: '#2A2A27', primaryTextColor: '#E5E5E0', lineColor: '#555', primaryBorderColor: '#444', background: '#191919', mainBkg: '#191919', nodeBorder: '#444', clusterBkg: '#222', titleColor: '#E5E5E0', edgeLabelBackground: '#191919' }}
+          : { theme: 'base', themeVariables: { primaryColor: '#F3F2EE', primaryTextColor: '#1A1A18', lineColor: '#999', primaryBorderColor: '#D0CEC8', background: '#fff', mainBkg: '#fff', nodeBorder: '#D0CEC8', clusterBkg: '#ECEAE4', titleColor: '#1A1A18', edgeLabelBackground: '#fff' }})
+      });
+    }
+
+    function updateThemeIcon(theme) {
+      const moon = document.getElementById('theme-icon-moon');
+      const sun = document.getElementById('theme-icon-sun');
+      if (moon) moon.style.display = theme === 'dark' ? 'none' : 'block';
+      if (sun) sun.style.display = theme === 'dark' ? 'block' : 'none';
+    }
+
+    // Init theme icons
+    document.addEventListener('DOMContentLoaded', function() {
+      const t = document.documentElement.getAttribute('data-theme') || 'light';
+      updateThemeIcon(t);
+
+      // Patch breadcrumb on mode switch
+      document.querySelectorAll('.mode-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          const bc = document.getElementById('breadcrumb-mode');
+          if (bc) bc.textContent = tab.dataset.mode === 'code' ? 'Code Explainer' : 'Equation Decoder';
+        });
+      });
+
+      // Patch results badge — app.js writes to #results-badge, we have #results-badge-text
+      const origBadge = document.getElementById('results-badge');
+      if (!origBadge) {
+        // Create a hidden element so app.js doesn't break
+        const el = document.createElement('span');
+        el.id = 'results-badge';
+        el.style.display = 'none';
+        document.body.appendChild(el);
+        // Mirror its content into our display
+        const observer = new MutationObserver(function() {
+          const txt = document.getElementById('results-badge-text');
+          if (txt) txt.textContent = el.textContent;
+        });
+        observer.observe(el, { childList: true, subtree: true, characterData: true });
+      }
+    });
+  </script>
+
+  <!-- Tweaks panel — single Babel block so everything shares scope -->
+  <div id="tweak-panel-root"></div>
+  <script type="text/babel">
+    /* ── MINI TWEAKS SHELL ─────────────────────────────────── */
+    const __TWK_CSS = `
+      .twk-panel{position:fixed;right:16px;bottom:16px;z-index:2147483646;width:272px;
+        max-height:calc(100vh - 32px);display:flex;flex-direction:column;
+        background:rgba(250,249,247,.92);color:#29261b;
+        -webkit-backdrop-filter:blur(20px) saturate(160%);backdrop-filter:blur(20px) saturate(160%);
+        border:.5px solid rgba(0,0,0,.1);border-radius:12px;
+        box-shadow:0 12px 40px rgba(0,0,0,.18);
+        font:12px/1.4 ui-sans-serif,system-ui,-apple-system,sans-serif;overflow:hidden}
+      [data-theme="dark"] .twk-panel{background:rgba(30,30,28,.94);color:#e0dfd9;border-color:rgba(255,255,255,.08)}
+      .twk-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 10px 10px 14px;cursor:move;user-select:none;border-bottom:.5px solid rgba(0,0,0,.08)}
+      [data-theme="dark"] .twk-hd{border-bottom-color:rgba(255,255,255,.06)}
+      .twk-hd-title{font-size:12px;font-weight:600;letter-spacing:.01em}
+      .twk-close{appearance:none;border:0;background:transparent;color:rgba(41,38,27,.45);
+        width:22px;height:22px;border-radius:6px;cursor:pointer;font-size:14px;line-height:22px;text-align:center}
+      .twk-close:hover{background:rgba(0,0,0,.07);color:#29261b}
+      [data-theme="dark"] .twk-close{color:rgba(224,223,217,.4)}
+      [data-theme="dark"] .twk-close:hover{background:rgba(255,255,255,.08);color:#e0dfd9}
+      .twk-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:12px;overflow-y:auto}
+      .twk-sect{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+        color:rgba(41,38,27,.4);margin-bottom:-4px}
+      [data-theme="dark"] .twk-sect{color:rgba(224,223,217,.35)}
+      .twk-row{display:flex;flex-direction:column;gap:4px}
+      .twk-row-h{flex-direction:row;align-items:center;justify-content:space-between}
+      .twk-lbl{font-size:11.5px;font-weight:500;color:rgba(41,38,27,.65)}
+      [data-theme="dark"] .twk-lbl{color:rgba(224,223,217,.6)}
+      .twk-val{font-size:11px;color:rgba(41,38,27,.4);font-variant-numeric:tabular-nums}
+      .twk-seg{display:flex;padding:2px;border-radius:7px;background:rgba(0,0,0,.06);position:relative}
+      [data-theme="dark"] .twk-seg{background:rgba(255,255,255,.07)}
+      .twk-seg-thumb{position:absolute;top:2px;bottom:2px;border-radius:5px;
+        background:rgba(255,255,255,.9);box-shadow:0 1px 3px rgba(0,0,0,.14);
+        transition:left .15s,width .15s;pointer-events:none}
+      [data-theme="dark"] .twk-seg-thumb{background:rgba(255,255,255,.15)}
+      .twk-seg button{position:relative;z-index:1;flex:1;border:0;background:transparent;
+        font:inherit;font-size:11.5px;font-weight:500;min-height:22px;border-radius:5px;
+        cursor:pointer;padding:3px 4px;line-height:1.2;color:inherit}
+      .twk-slider{appearance:none;-webkit-appearance:none;width:100%;height:3px;
+        border-radius:999px;background:rgba(0,0,0,.12);outline:none;margin:4px 0}
+      [data-theme="dark"] .twk-slider{background:rgba(255,255,255,.15)}
+      .twk-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;
+        border-radius:50%;background:#fff;border:.5px solid rgba(0,0,0,.15);
+        box-shadow:0 1px 3px rgba(0,0,0,.2);cursor:pointer}
+      .twk-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+        background:#fff;border:.5px solid rgba(0,0,0,.15);cursor:pointer}
+      .twk-swatch{appearance:none;-webkit-appearance:none;width:52px;height:22px;
+        border:.5px solid rgba(0,0,0,.12);border-radius:5px;padding:0;cursor:pointer;background:transparent}
+      .twk-swatch::-webkit-color-swatch-wrapper{padding:0}
+      .twk-swatch::-webkit-color-swatch{border:0;border-radius:4.5px}
+    `;
+
+    function useTweaks(defaults) {
+      const [vals, setVals] = React.useState(defaults);
+      const set = React.useCallback((keyOrObj, val) => {
+        const edits = typeof keyOrObj === 'object' ? keyOrObj : { [keyOrObj]: val };
+        setVals(p => ({ ...p, ...edits }));
+        window.parent.postMessage({ type: '__edit_mode_set_keys', edits }, '*');
+      }, []);
+      return [vals, set];
+    }
+
+    function TweaksPanel({ title = 'Tweaks', children }) {
+      const [open, setOpen] = React.useState(false);
+      const ref = React.useRef(null);
+      const pos = React.useRef({ r: 16, b: 16 });
+
+      React.useEffect(() => {
+        const onMsg = e => {
+          if (e?.data?.type === '__activate_edit_mode') setOpen(true);
+          else if (e?.data?.type === '__deactivate_edit_mode') setOpen(false);
+        };
+        window.addEventListener('message', onMsg);
+        window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+        return () => window.removeEventListener('message', onMsg);
+      }, []);
+
+      const dismiss = () => { setOpen(false); window.parent.postMessage({ type: '__edit_mode_dismissed' }, '*'); };
+
+      const drag = e => {
+        const p = ref.current; if (!p) return;
+        const r = p.getBoundingClientRect();
+        const ox = e.clientX, oy = e.clientY;
+        const sr = window.innerWidth - r.right, sb = window.innerHeight - r.bottom;
+        const move = ev => {
+          pos.current = {
+            r: Math.max(8, Math.min(window.innerWidth - p.offsetWidth - 8, sr - (ev.clientX - ox))),
+            b: Math.max(8, Math.min(window.innerHeight - p.offsetHeight - 8, sb - (ev.clientY - oy)))
+          };
+          p.style.right = pos.current.r + 'px';
+          p.style.bottom = pos.current.b + 'px';
+        };
+        const up = () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up); };
+        window.addEventListener('mousemove', move);
+        window.addEventListener('mouseup', up);
+      };
+
+      if (!open) return null;
+      return (
+        <>
+          <style>{__TWK_CSS}</style>
+          <div ref={ref} className="twk-panel" style={{ right: pos.current.r, bottom: pos.current.b }}>
+            <div className="twk-hd" onMouseDown={drag}>
+              <span className="twk-hd-title">{title}</span>
+              <button className="twk-close" onMouseDown={e => e.stopPropagation()} onClick={dismiss}>✕</button>
+            </div>
+            <div className="twk-body">{children}</div>
+          </div>
+        </>
+      );
+    }
+
+    function TweakSection({ title }) {
+      return <div className="twk-sect">{title}</div>;
+    }
+
+    function TweakRadio({ value, options, onChange }) {
+      const opts = options.map(o => typeof o === 'object' ? o : { value: o, label: o });
+      const idx = Math.max(0, opts.findIndex(o => o.value === value));
+      const n = opts.length;
+      return (
+        <div className="twk-seg">
+          <div className="twk-seg-thumb" style={{ left: `calc(2px + ${idx}*(100% - 4px)/${n})`, width: `calc((100% - 4px)/${n})` }} />
+          {opts.map(o => <button key={o.value} type="button" onClick={() => onChange(o.value)}>{o.label}</button>)}
+        </div>
+      );
+    }
+
+    function TweakSlider({ label, value, min, max, step = 1, unit = '', onChange }) {
+      return (
+        <div className="twk-row">
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
+            <span className="twk-lbl">{label}</span>
+            <span className="twk-val">{value}{unit}</span>
+          </div>
+          <input type="range" className="twk-slider" min={min} max={max} step={step}
+                 value={value} onChange={e => onChange(Number(e.target.value))} />
+        </div>
+      );
+    }
+
+    function TweakColor({ label, value, onChange }) {
+      return (
+        <div className="twk-row twk-row-h">
+          <span className="twk-lbl">{label}</span>
+          <input type="color" className="twk-swatch" value={value} onChange={e => onChange(e.target.value)} />
+        </div>
+      );
+    }
+
+    /* ── APP TWEAKS ─────────────────────────────────────────── */
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "variation": "a",
+      "sidebarWidth": 520,
+      "borderRadius": "rounded",
+      "accentColor": "#285571"
+    }/*EDITMODE-END*/;
+
+    function AppTweaks() {
+      const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+      React.useEffect(() => {
+        document.body.className = 'var-' + tweaks.variation;
+        document.documentElement.style.setProperty('--left-w', tweaks.sidebarWidth + 'px');
+        const rMap = { none: ['0px','0px','2px'], subtle: ['3px','6px','8px'], rounded: ['6px','10px','14px'] };
+        const [sm, md, lg] = rMap[tweaks.borderRadius] || rMap.subtle;
+        document.documentElement.style.setProperty('--r-sm', sm);
+        document.documentElement.style.setProperty('--r-md', md);
+        document.documentElement.style.setProperty('--r-lg', lg);
+        document.documentElement.style.setProperty('--ac', tweaks.accentColor);
+      }, [tweaks]);
+
+      return (
+        <TweaksPanel title="Tweaks">
+          <TweakSection title="Layout Variation" />
+          <TweakRadio
+            options={[
+              { value: 'a', label: 'A — Classic' },
+              { value: 'b', label: 'B — Editorial' },
+              { value: 'c', label: 'C — Minimal' }
+            ]}
+            value={tweaks.variation}
+            onChange={v => setTweak('variation', v)}
+          />
+          <TweakSection title="Input Panel Width" />
+          <TweakSlider
+            label="Width" unit="px"
+            min={320} max={680} step={8}
+            value={tweaks.sidebarWidth}
+            onChange={v => setTweak('sidebarWidth', v)}
+          />
+          <TweakSection title="Corner Radius" />
+          <TweakRadio
+            options={[
+              { value: 'none', label: 'None' },
+              { value: 'subtle', label: 'Subtle' },
+              { value: 'rounded', label: 'Rounded' }
+            ]}
+            value={tweaks.borderRadius}
+            onChange={v => setTweak('borderRadius', v)}
+          />
+          <TweakSection title="Accent Color" />
+          <TweakColor
+            label="Color"
+            value={tweaks.accentColor}
+            onChange={v => setTweak('accentColor', v)}
+          />
+        </TweaksPanel>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('tweak-panel-root')).render(<AppTweaks />);
+  </script>
+
+</body>
+</html>

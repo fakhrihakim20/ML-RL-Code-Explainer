@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Researcher Tutor — Explain ML/RL code and math equations like a world-class professor. Beginner-friendly, visual, and interactive.">
+  <title>Researcher Tutor</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="output-styles.css">
+  <!-- KaTeX for equation rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <!-- Prism.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" id="prism-theme-css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <!-- Mermaid for diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <!-- html2pdf -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    (function(){
+      const saved = localStorage.getItem('ml_theme');
+      const prefer = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      const theme = saved || prefer;
+      document.documentElement.setAttribute('data-theme', theme);
+      var mermaidTheme = theme === 'dark'
+        ? { theme: 'base', themeVariables: { primaryColor: '#2A2A27', primaryTextColor: '#E5E5E0', lineColor: '#555', primaryBorderColor: '#444', background: '#191919', mainBkg: '#191919', nodeBorder: '#444', clusterBkg: '#222', titleColor: '#E5E5E0', edgeLabelBackground: '#191919' }}
+        : { theme: 'base', themeVariables: { primaryColor: '#F3F2EE', primaryTextColor: '#1A1A18', lineColor: '#999', primaryBorderColor: '#D0CEC8', background: '#fff', mainBkg: '#fff', nodeBorder: '#D0CEC8', clusterBkg: '#ECEAE4', titleColor: '#1A1A18', edgeLabelBackground: '#fff' }};
+      mermaid.initialize({ startOnLoad: false, ...mermaidTheme });
+    })();
+  </script>
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <!-- ── TOP BAR ── -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="breadcrumb">
+          <span class="breadcrumb-page">Researcher Tutor</span>
+          <span class="breadcrumb-sep">›</span>
+          <span class="breadcrumb-sub" id="breadcrumb-mode">Code Explainer</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="header-setup-btn" id="setup-toggle-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          API Setup
+        </button>
+        <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      </div>
+    </header>
+
+    <!-- Drawer overlay -->
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+
+    <!-- Setup drawer -->
+    <div class="setup-drawer" id="setup-drawer">
+      <div class="drawer-header">
+        <span class="drawer-title">API Setup</span>
+        <button class="drawer-close" id="drawer-close">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="provider-tabs">
+          <button class="provider-tab active" data-provider="gemini">✨ Gemini</button>
+          <button class="provider-tab" data-provider="openrouter">🔀 OpenRouter</button>
+          <button class="provider-tab" data-provider="huggingface">🤗 Hugging Face</button>
+        </div>
+
+        <!-- Gemini Section -->
+        <div id="gemini-section" class="active">
+          <div class="form-group">
+            <label>Gemini API Key</label>
+            <input type="password" id="gemini-token" placeholder="AIza...">
+          </div>
+          <div style="display:none;"><input type="hidden" id="gemini-model" value="gemini-2.5-flash"></div>
+        </div>
+
+        <!-- Hugging Face Section -->
+        <div id="hf-section" style="display:none;">
+          <div class="form-group">
+            <label>Hugging Face API Token</label>
+            <input type="password" id="hf-token" placeholder="hf_...">
+          </div>
+          <div class="form-group">
+            <label>Model ID</label>
+            <input type="text" id="hf-model" placeholder="e.g. meta-llama/Llama-3.2-3B-Instruct" value="meta-llama/Llama-3.2-3B-Instruct">
+            <p class="custom-model-hint" style="color:var(--warn);margin-top:6px">Note: HF free tier no longer supports most large LLMs. Use OpenRouter instead.</p>
+          </div>
+        </div>
+
+        <!-- OpenRouter Section -->
+        <div id="or-section" style="display:none;">
+          <div class="form-group">
+            <label>OpenRouter API Key</label>
+            <input type="password" id="or-token" placeholder="sk-or-v1-...">
+          </div>
+          <div class="form-group model-select-group">
+            <label for="or-model">Model</label>
+            <select id="or-model"></select>
+          </div>
+          <div class="form-group model-select-group custom-model-group">
+            <label for="custom-model">Add Custom Model</label>
+            <div class="form-row">
+              <div class="form-group">
+                <input type="text" id="custom-model" placeholder="e.g. openai/gpt-4o-mini">
+              </div>
+              <button class="btn-add" id="btn-add-model">+ Add</button>
+            </div>
+            <p class="custom-model-hint">Browse models at <a href="https://openrouter.ai/models" target="_blank">openrouter.ai/models</a></p>
+          </div>
+          <div class="or-limits-card" id="or-limits-card">
+            <div class="or-limits-header">
+              <span class="or-limits-title">📊 API Usage &amp; Limits</span>
+              <button class="btn-check-limits" id="btn-check-limits" onclick="checkOpenRouterLimits()">Check Status</button>
+            </div>
+            <div class="or-limits-loading" id="or-limits-loading">
+              <div class="mini-spinner"></div>
+              <span>Fetching usage data...</span>
+            </div>
+            <div class="or-limits-body" id="or-limits-body"></div>
+          </div>
+        </div>
+
+        <div class="save-row" style="margin-top:18px;">
+          <button class="btn-save" id="btn-save">Save Token</button>
+          <span id="save-status" class="save-status"></span>
+        </div>
+        <p id="setup-hint" class="setup-hint">
+          💡 Get your free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a> — free and takes 30 seconds.
+        </p>
+      </div>
+    </div>
+
+    <!-- ── TWO-COLUMN BODY ── -->
+    <div class="app-body">
+
+      <!-- LEFT COLUMN -->
+      <div class="left-col">
+        <div class="left-page-header">
+          <span class="page-icon">🧠</span>
+          <h1 class="page-title">Researcher Tutor</h1>
+          <p class="page-subtitle">Explain ML &amp; RL code and equations like a world-class professor.</p>
+        </div>
+
+        <!-- Mode switcher — Notion underline tabs -->
+        <div class="input-mode-tabs">
+          <button class="input-mode-tab active" id="mode-tab-code" data-mode="code">⌨️ Code</button>
+          <button class="input-mode-tab" id="mode-tab-equation" data-mode="equation">∑ Equation</button>
+        </div>
+
+        <!-- Code Mode -->
+        <div id="input-panel-code" class="input-panel active">
+          <div class="code-editor-wrap" id="code-editor-wrap">
+            <div class="line-nums" id="line-nums"><div class="ln-num">1</div></div>
+            <div class="code-input-container">
+              <pre id="code-highlight" aria-hidden="true"><code class="language-python" id="code-highlight-inner"></code></pre>
+              <textarea id="code-input" class="code-editor" placeholder="# Paste your Python ML or RL code here&#10;&#10;import torch&#10;import torch.nn as nn&#10;&#10;class Policy(nn.Module):&#10;    ..." spellcheck="false"></textarea>
+            </div>
+          </div>
+          <div class="action-row">
+            <button class="btn-primary" id="btn-explain">Explain</button>
+            <button class="btn-outline" id="btn-visualize">Visualize</button>
+            <button class="btn-ghost" id="btn-clear">Clear</button>
+          </div>
+        </div>
+
+        <!-- Equation Mode -->
+        <div id="input-panel-equation" class="input-panel" style="display:none;">
+          <h2 class="input-heading" style="font-size:18px;font-weight:700;color:var(--tx1);margin-bottom:4px;">Your equation, decoded.</h2>
+          <p class="input-subhead" style="font-size:13px;color:var(--tx3);margin-bottom:16px;">Type, upload, or paste a screenshot — LaTeX, plain text, or image.</p>
+
+          <div class="eq-input-tabs">
+            <button class="eq-input-tab active" id="eq-tab-type" data-eqmode="type">✏️ Type</button>
+            <button class="eq-input-tab" id="eq-tab-image" data-eqmode="image">🖼️ Image</button>
+          </div>
+
+          <div id="eq-panel-type" class="eq-subpanel">
+            <textarea id="equation-input" class="equation-editor" placeholder="Examples:&#10;  E = mc²&#10;  J(θ) = -E[log π(a|s) · Q(s,a)]&#10;  ∂L/∂w = -2·Σ(y - ŷ)·x&#10;  softmax(x_i) = e^x_i / Σe^x_j" spellcheck="false"></textarea>
+            <div id="equation-preview" class="equation-preview" style="display:none;">
+              <span class="eq-preview-label">Preview</span>
+              <div id="equation-preview-render"></div>
+            </div>
+          </div>
+
+          <div id="eq-panel-image" class="eq-subpanel" style="display:none;">
+            <div class="eq-drop-zone" id="eq-drop-zone">
+              <input type="file" id="eq-file-input" accept="image/*" style="display:none;">
+              <div class="eq-drop-idle" id="eq-drop-idle">
+                <div class="eq-drop-icon">🖼️</div>
+                <p class="eq-drop-title">Drop an image here</p>
+                <p class="eq-drop-hint">or</p>
+                <div class="eq-drop-btns">
+                  <button class="eq-drop-btn" id="eq-btn-browse">📁 Browse file</button>
+                  <button class="eq-drop-btn" id="eq-btn-paste-img">📋 Paste (Ctrl+V)</button>
+                </div>
+                <p class="eq-drop-hint" style="margin-top:10px;">Supports JPG, PNG, WebP, GIF · Max 10 MB</p>
+              </div>
+            </div>
+            <div class="eq-img-preview" id="eq-img-preview" style="display:none;">
+              <div class="eq-img-preview-header">
+                <span class="eq-img-preview-label">📸 Image attached</span>
+                <button class="eq-img-remove" id="eq-img-remove" title="Remove image">✕ Remove</button>
+              </div>
+              <img id="eq-img-thumb" class="eq-img-thumb" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Equation image preview">
+              <p class="eq-img-caption" id="eq-img-caption"></p>
+            </div>
+            <div class="eq-img-note" id="eq-img-note">
+              <span>📌</span>
+              <span>Image reading requires <strong>Gemini</strong> or <strong>OpenRouter</strong> vision models (like DeepSeek, GPT-4o, Claude). Works best with clear screenshots.</span>
+            </div>
+          </div>
+
+          <div class="eq-context-row" id="eq-context-row" style="display:none;">
+            <input type="text" id="eq-context-input" class="eq-context-field" placeholder="Optional: add context or a specific question (e.g. 'This is from reinforcement learning')">
+          </div>
+
+          <div class="action-row" style="margin-top:14px;">
+            <button class="btn-primary" id="btn-explain-equation">Explain Equation</button>
+            <button class="btn-ghost" id="btn-clear-equation">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESIZER -->
+      <div class="app-resizer" id="app-resizer">
+        <div class="resizer-handle"></div>
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="right-col">
+
+        <!-- Loading -->
+        <div class="loading-container">
+          <div class="spinner"></div>
+          <p class="loading-text">Reading your code...</p>
+        </div>
+
+        <!-- Error -->
+        <div class="error-card">
+          <h3>⚠️ Something went wrong</h3>
+          <p id="error-message"></p>
+          <p class="suggestion">💡 Double-check your API token in Setup and make sure it's valid.</p>
+        </div>
+
+        <!-- Placeholder -->
+        <div class="results-placeholder" id="results-placeholder">
+          <div class="placeholder-icon">~</div>
+          <h3>Nothing here yet</h3>
+          <p>Paste your Python ML or RL code on the left, then click <strong>Explain</strong> or <strong>Visualize</strong> to begin.</p>
+        </div>
+
+        <!-- Results -->
+        <section class="results-section">
+          <div class="right-page-header">
+            <h2 class="results-title">Results</h2>
+            <p class="results-meta">
+              Powered by: <span id="results-badge" class="results-badge">—</span>
+            </p>
+            <div class="result-tabs">
+              <button class="result-tab active" data-tab="explanation">📝 Code Explanation</button>
+              <button class="result-tab" data-tab="visual">🎨 Visual</button>
+              <button class="result-tab" data-tab="equation">∑ Equation</button>
+            </div>
+          </div>
+
+          <!-- Explanation Tab -->
+          <div class="tab-content active" id="tab-explanation">
+            <div class="tab-body">
+              <div class="diagram-toolbar" id="toolbar-explanation">
+                <button class="diagram-btn" onclick="exportExplanation('md')">↓ Save MD</button>
+                <button class="diagram-btn" onclick="exportExplanation('pdf')">↓ Save PDF</button>
+              </div>
+              <div class="explanation-content" id="explanation-content"></div>
+            </div>
+          </div>
+
+          <!-- Visual Tab -->
+          <div class="tab-content" id="tab-visual">
+            <div class="tab-body">
+              <div class="diagrams-grid">
+                <div class="diagram-card">
+                  <h4>🧠 Concept Map</h4>
+                  <div class="diagram-toolbar" id="toolbar-concept" style="display:none;">
+                    <button class="diagram-btn" onclick="zoomDiagram('concept', 0.2)">+ Zoom</button>
+                    <button class="diagram-btn" onclick="zoomDiagram('concept', -0.2)">− Zoom</button>
+                    <button class="diagram-btn" onclick="openDiagramInNewTab('concept')">↗ Open</button>
+                    <button class="diagram-btn" onclick="saveDiagram('concept', 'svg')">↓ SVG</button>
+                    <button class="diagram-btn" onclick="saveDiagram('concept', 'png')">↓ PNG</button>
+                  </div>
+                  <div class="diagram-container">
+                    <div id="diagram-concept"></div>
+                  </div>
+                </div>
+                <div class="diagram-card">
+                  <h4>⚙️ Execution Flow</h4>
+                  <div class="diagram-toolbar" id="toolbar-flowchart" style="display:none;">
+                    <button class="diagram-btn" onclick="zoomDiagram('flowchart', 0.2)">+ Zoom</button>
+                    <button class="diagram-btn" onclick="zoomDiagram('flowchart', -0.2)">− Zoom</button>
+                    <button class="diagram-btn" onclick="openDiagramInNewTab('flowchart')">↗ Open</button>
+                    <button class="diagram-btn" onclick="saveDiagram('flowchart', 'svg')">↓ SVG</button>
+                    <button class="diagram-btn" onclick="saveDiagram('flowchart', 'png')">↓ PNG</button>
+                  </div>
+                  <div class="diagram-container">
+                    <div id="diagram-flow"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="walkthrough-card">
+                <h4>📖 Plain English Walkthrough</h4>
+                <div id="walkthrough-content"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Equation Tab -->
+          <div class="tab-content" id="tab-equation">
+            <div class="tab-body">
+              <div class="diagram-toolbar" id="toolbar-equation-export">
+                <button class="diagram-btn" onclick="exportEquation('md')">↓ Save MD</button>
+                <button class="diagram-btn" onclick="exportEquation('pdf')">↓ Save PDF</button>
+              </div>
+              <div class="explanation-content" id="equation-content"></div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+
+  <script>
+    // ── Breadcrumb update on mode switch ──
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.input-mode-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          var bc = document.getElementById('breadcrumb-mode');
+          if (bc) bc.textContent = tab.dataset.mode === 'code' ? 'Code Explainer' : 'Equation Decoder';
+        });
+      });
+    });
+
+    // ── Theme toggle (overrides app.js version to use SVG icons) ──
+    function toggleTheme() {
+      var html = document.documentElement;
+      var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('ml_theme', next);
+      updateThemeIcon(next);
+      var prismTheme = document.getElementById('prism-theme-css');
+      if (prismTheme) {
+        prismTheme.href = next === 'dark'
+          ? 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css'
+          : 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css';
+      }
+      mermaid.initialize({
+        startOnLoad: false,
+        ...(next === 'dark'
+          ? { theme: 'base', themeVariables: { primaryColor: '#2A2A27', primaryTextColor: '#E5E5E0', lineColor: '#555', primaryBorderColor: '#444', background: '#191919', mainBkg: '#191919', nodeBorder: '#444', clusterBkg: '#222', titleColor: '#E5E5E0', edgeLabelBackground: '#191919' }}
+          : { theme: 'base', themeVariables: { primaryColor: '#F3F2EE', primaryTextColor: '#1A1A18', lineColor: '#999', primaryBorderColor: '#D0CEC8', background: '#fff', mainBkg: '#fff', nodeBorder: '#D0CEC8', clusterBkg: '#ECEAE4', titleColor: '#1A1A18', edgeLabelBackground: '#fff' }})
+      });
+    }
+
+    function updateThemeIcon(theme) {
+      var btn = document.getElementById('theme-toggle');
+      if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var t = document.documentElement.getAttribute('data-theme') || 'light';
+      updateThemeIcon(t);
+    });
+  </script>
+
+</body>
+</html>
