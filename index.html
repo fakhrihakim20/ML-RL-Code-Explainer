@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ML Code Explainer - Paste your Python ML/RL code and get beginner-friendly explanations with visual flowcharts and concept maps.">
+  <title>ML Code Explainer</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    (function(){
+      const saved = localStorage.getItem('ml_theme');
+      const prefer = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      const theme = saved || prefer;
+      document.documentElement.setAttribute('data-theme', theme);
+      var mermaidTheme = theme === 'dark'
+        ? { theme: 'base', themeVariables: { primaryColor: '#2A2A27', primaryTextColor: '#E5E5E0', lineColor: '#555', primaryBorderColor: '#444', background: '#1C1C1A', mainBkg: '#1C1C1A', nodeBorder: '#444', clusterBkg: '#252523', titleColor: '#E5E5E0', edgeLabelBackground: '#1C1C1A' }}
+        : { theme: 'base', themeVariables: { primaryColor: '#F3F2EE', primaryTextColor: '#1A1A18', lineColor: '#999', primaryBorderColor: '#D0CEC8', background: '#FAF9F6', mainBkg: '#FAF9F6', nodeBorder: '#D0CEC8', clusterBkg: '#ECEAE4', titleColor: '#1A1A18', edgeLabelBackground: '#FAF9F6' }};
+      mermaid.initialize({ startOnLoad: false, ...mermaidTheme });
+    })();
+  </script>
+</head>
+<body>
+
+  <div class="app-shell">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-name">ML Code Explainer</span>
+        <span class="brand-tag">for beginners</span>
+      </div>
+      <div class="header-actions">
+        <button class="header-setup-btn" id="setup-toggle-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          API Setup
+        </button>
+        <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
+      </div>
+    </header>
+
+    <!-- Setup Drawer Overlay -->
+    <div class="drawer-overlay" id="drawer-overlay"></div>
+
+    <!-- Setup Drawer -->
+    <div class="setup-drawer" id="setup-drawer">
+      <div class="drawer-header">
+        <span class="drawer-title">API Setup</span>
+        <button class="drawer-close" id="drawer-close">✕</button>
+      </div>
+      <div class="drawer-body">
+        <div class="provider-tabs">
+          <button class="provider-tab active" data-provider="gemini">✨ Gemini</button>
+          <button class="provider-tab" data-provider="openrouter">🔀 OpenRouter</button>
+          <button class="provider-tab" data-provider="huggingface">🤗 Hugging Face</button>
+        </div>
+
+        <!-- Gemini Section -->
+        <div id="gemini-section" class="active">
+          <div class="form-group">
+            <label>Gemini API Key</label>
+            <input type="password" id="gemini-token" placeholder="AIza...">
+          </div>
+          <div style="display:none;"><input type="hidden" id="gemini-model" value="gemini-2.5-flash"></div>
+        </div>
+
+        <!-- Hugging Face Section -->
+        <div id="hf-section" style="display:none;">
+          <div class="form-group">
+            <label>Hugging Face API Token</label>
+            <input type="password" id="hf-token" placeholder="hf_...">
+          </div>
+          <div class="form-group">
+            <label>Model ID</label>
+            <input type="text" id="hf-model" placeholder="e.g. meta-llama/Llama-3.2-3B-Instruct" value="meta-llama/Llama-3.2-3B-Instruct">
+            <p class="custom-model-hint" style="color:var(--warn);margin-top:6px">Note: HF free tier no longer supports most large LLMs. Use OpenRouter instead.</p>
+          </div>
+        </div>
+
+        <!-- OpenRouter Section -->
+        <div id="or-section" style="display:none;">
+          <div class="form-group">
+            <label>OpenRouter API Key</label>
+            <input type="password" id="or-token" placeholder="sk-or-v1-...">
+          </div>
+          <div class="form-group model-select-group">
+            <label for="or-model">Model</label>
+            <select id="or-model"></select>
+          </div>
+          <div class="form-group model-select-group custom-model-group">
+            <label for="custom-model">Add Custom Model</label>
+            <div class="form-row">
+              <div class="form-group">
+                <input type="text" id="custom-model" placeholder="e.g. openai/gpt-4o-mini">
+              </div>
+              <button class="btn-add" id="btn-add-model">+ Add</button>
+            </div>
+            <p class="custom-model-hint">Browse models at <a href="https://openrouter.ai/models" target="_blank">openrouter.ai/models</a> — copy the model ID and paste it here</p>
+          </div>
+          <!-- OpenRouter Usage Status -->
+          <div class="or-limits-card" id="or-limits-card">
+            <div class="or-limits-header">
+              <span class="or-limits-title">📊 API Usage & Limits</span>
+              <button class="btn-check-limits" id="btn-check-limits" onclick="checkOpenRouterLimits()">Check Status</button>
+            </div>
+            <div class="or-limits-loading" id="or-limits-loading">
+              <div class="mini-spinner"></div>
+              <span>Fetching usage data...</span>
+            </div>
+            <div class="or-limits-body" id="or-limits-body"></div>
+          </div>
+        </div>
+
+        <div class="save-row" style="margin-top:18px;">
+          <button class="btn-save" id="btn-save">Save Token</button>
+          <span id="save-status" class="save-status"></span>
+        </div>
+        <p id="setup-hint" class="setup-hint">
+          💡 Get your free token at <a href="https://huggingface.co" target="_blank">huggingface.co</a> → Sign up → Settings → Access Tokens → New Token (Read role)
+        </p>
+      </div>
+    </div>
+
+    <!-- Two-Column Body -->
+    <div class="app-body">
+      <!-- Left Column: Code Input -->
+      <div class="left-col">
+        <h2 class="input-heading">Your code, explained.</h2>
+        <p class="input-subhead">Paste any Python ML or RL code below.</p>
+        <textarea id="code-input" class="code-editor" placeholder="# Paste your Python ML code here
+
+import torch
+import torch.nn as nn
+
+class Policy(nn.Module):
+    ..." spellcheck="false"></textarea>
+        <div class="action-row">
+          <button class="btn-primary" id="btn-explain">Explain</button>
+          <button class="btn-outline" id="btn-visualize">Visualize</button>
+          <button class="btn-ghost" id="btn-clear">Clear</button>
+        </div>
+      </div>
+
+      <!-- Right Column: Results -->
+      <div class="right-col">
+        <!-- Loading -->
+        <div class="loading-container">
+          <div class="spinner"></div>
+          <p class="loading-text">Reading your code...</p>
+        </div>
+
+        <!-- Error -->
+        <div class="error-card">
+          <h3>⚠️ Something went wrong</h3>
+          <p id="error-message"></p>
+          <p class="suggestion">💡 Double-check your API token in Setup and make sure it's valid.</p>
+        </div>
+
+        <!-- Placeholder -->
+        <div class="results-placeholder" id="results-placeholder">
+          <div class="placeholder-icon">~</div>
+          <h3>No code yet</h3>
+          <p>Paste your Python ML or RL code on the left, then click <strong>Explain</strong> or <strong>Visualize</strong> to begin.</p>
+        </div>
+
+        <!-- Results -->
+        <section class="results-section">
+          <div class="results-header">
+            <span class="results-title">Results</span>
+            <span class="results-badge" id="results-badge">Powered by: —</span>
+          </div>
+          <div class="result-tabs">
+            <button class="result-tab active" data-tab="explanation">📝 Explanation</button>
+            <button class="result-tab" data-tab="visual">🎨 Visual</button>
+          </div>
+
+          <!-- Explanation Tab -->
+          <div class="tab-content active" id="tab-explanation">
+            <div class="explanation-content" id="explanation-content"></div>
+          </div>
+
+          <!-- Visual Tab -->
+          <div class="tab-content" id="tab-visual">
+            <div class="diagrams-grid">
+              <div class="diagram-card">
+                <h4>🧠 Concept Map</h4>
+                <div class="diagram-toolbar" id="toolbar-concept" style="display:none;">
+                  <button class="diagram-btn" onclick="zoomDiagram('concept', 0.2)">+ Zoom</button>
+                  <button class="diagram-btn" onclick="zoomDiagram('concept', -0.2)">− Zoom</button>
+                  <button class="diagram-btn" onclick="openDiagramInNewTab('concept')">↗ Open</button>
+                  <button class="diagram-btn" onclick="saveDiagram('concept')">↓ Save</button>
+                </div>
+                <div class="diagram-container">
+                  <div id="diagram-concept"></div>
+                </div>
+              </div>
+              <div class="diagram-card">
+                <h4>⚙️ Execution Flow</h4>
+                <div class="diagram-toolbar" id="toolbar-flowchart" style="display:none;">
+                  <button class="diagram-btn" onclick="zoomDiagram('flowchart', 0.2)">+ Zoom</button>
+                  <button class="diagram-btn" onclick="zoomDiagram('flowchart', -0.2)">− Zoom</button>
+                  <button class="diagram-btn" onclick="openDiagramInNewTab('flowchart')">↗ Open</button>
+                  <button class="diagram-btn" onclick="saveDiagram('flowchart')">↓ Save</button>
+                </div>
+                <div class="diagram-container">
+                  <div id="diagram-flow"></div>
+                </div>
+              </div>
+            </div>
+            <div class="walkthrough-card">
+              <h4>📖 Plain English Walkthrough</h4>
+              <div id="walkthrough-content"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
