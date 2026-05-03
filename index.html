@@ -15,8 +15,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" id="prism-theme-css">
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <!-- Mermaid for diagrams -->
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <!-- html2pdf -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   <script>
     (function(){
       const saved = localStorage.getItem('ml_theme');
@@ -24,8 +27,8 @@
       const theme = saved || prefer;
       document.documentElement.setAttribute('data-theme', theme);
       var mermaidTheme = theme === 'dark'
-        ? { theme: 'base', themeVariables: { primaryColor: '#2A2A27', primaryTextColor: '#E5E5E0', lineColor: '#555', primaryBorderColor: '#444', background: '#1C1C1A', mainBkg: '#1C1C1A', nodeBorder: '#444', clusterBkg: '#252523', titleColor: '#E5E5E0', edgeLabelBackground: '#1C1C1A' }}
-        : { theme: 'base', themeVariables: { primaryColor: '#F3F2EE', primaryTextColor: '#1A1A18', lineColor: '#999', primaryBorderColor: '#D0CEC8', background: '#FAF9F6', mainBkg: '#FAF9F6', nodeBorder: '#D0CEC8', clusterBkg: '#ECEAE4', titleColor: '#1A1A18', edgeLabelBackground: '#FAF9F6' }};
+        ? { theme: 'base', themeVariables: { primaryColor: '#2A2A27', primaryTextColor: '#E5E5E0', lineColor: '#555', primaryBorderColor: '#444', background: '#191919', mainBkg: '#191919', nodeBorder: '#444', clusterBkg: '#222', titleColor: '#E5E5E0', edgeLabelBackground: '#191919' }}
+        : { theme: 'base', themeVariables: { primaryColor: '#F3F2EE', primaryTextColor: '#1A1A18', lineColor: '#999', primaryBorderColor: '#D0CEC8', background: '#fff', mainBkg: '#fff', nodeBorder: '#D0CEC8', clusterBkg: '#ECEAE4', titleColor: '#1A1A18', edgeLabelBackground: '#fff' }};
       mermaid.initialize({ startOnLoad: false, ...mermaidTheme });
     })();
   </script>
@@ -33,25 +36,37 @@
 <body>
 
   <div class="app-shell">
-    <!-- Header -->
+
+    <!-- ── TOP BAR ── -->
     <header class="app-header">
-      <div class="brand">
-        <span class="brand-name">Researcher Tutor</span>
-        <span class="brand-tag">All-in-one · Code &amp; Equations</span>
+      <div class="header-left">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="breadcrumb">
+          <span class="breadcrumb-page">Researcher Tutor</span>
+          <span class="breadcrumb-sep">›</span>
+          <span class="breadcrumb-sub" id="breadcrumb-mode">Code Explainer</span>
+        </div>
       </div>
       <div class="header-actions">
         <button class="header-setup-btn" id="setup-toggle-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
           API Setup
         </button>
         <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">🌙</button>
       </div>
     </header>
 
-    <!-- Setup Drawer Overlay -->
+    <!-- Drawer overlay -->
     <div class="drawer-overlay" id="drawer-overlay"></div>
 
-    <!-- Setup Drawer -->
+    <!-- Setup drawer -->
     <div class="setup-drawer" id="setup-drawer">
       <div class="drawer-header">
         <span class="drawer-title">API Setup</span>
@@ -104,12 +119,11 @@
               </div>
               <button class="btn-add" id="btn-add-model">+ Add</button>
             </div>
-            <p class="custom-model-hint">Browse models at <a href="https://openrouter.ai/models" target="_blank">openrouter.ai/models</a> — copy the model ID and paste it here</p>
+            <p class="custom-model-hint">Browse models at <a href="https://openrouter.ai/models" target="_blank">openrouter.ai/models</a></p>
           </div>
-          <!-- OpenRouter Usage Status -->
           <div class="or-limits-card" id="or-limits-card">
             <div class="or-limits-header">
-              <span class="or-limits-title">📊 API Usage & Limits</span>
+              <span class="or-limits-title">📊 API Usage &amp; Limits</span>
               <button class="btn-check-limits" id="btn-check-limits" onclick="checkOpenRouterLimits()">Check Status</button>
             </div>
             <div class="or-limits-loading" id="or-limits-loading">
@@ -125,16 +139,23 @@
           <span id="save-status" class="save-status"></span>
         </div>
         <p id="setup-hint" class="setup-hint">
-          💡 Get your free token at <a href="https://huggingface.co" target="_blank">huggingface.co</a> → Sign up → Settings → Access Tokens → New Token (Read role)
+          💡 Get your free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a> — free and takes 30 seconds.
         </p>
       </div>
     </div>
 
-    <!-- Two-Column Body -->
+    <!-- ── TWO-COLUMN BODY ── -->
     <div class="app-body">
-      <!-- Left Column: Input -->
+
+      <!-- LEFT COLUMN -->
       <div class="left-col">
-        <!-- Mode Switcher -->
+        <div class="left-page-header">
+          <span class="page-icon">🧠</span>
+          <h1 class="page-title">Researcher Tutor</h1>
+          <p class="page-subtitle">Explain ML &amp; RL code and equations like a world-class professor.</p>
+        </div>
+
+        <!-- Mode switcher — Notion underline tabs -->
         <div class="input-mode-tabs">
           <button class="input-mode-tab active" id="mode-tab-code" data-mode="code">⌨️ Code</button>
           <button class="input-mode-tab" id="mode-tab-equation" data-mode="equation">∑ Equation</button>
@@ -142,13 +163,11 @@
 
         <!-- Code Mode -->
         <div id="input-panel-code" class="input-panel active">
-          <h2 class="input-heading">Your code, explained.</h2>
-          <p class="input-subhead">Paste any Python ML or RL code below.</p>
           <div class="code-editor-wrap" id="code-editor-wrap">
             <div class="line-nums" id="line-nums"><div class="ln-num">1</div></div>
             <div class="code-input-container">
               <pre id="code-highlight" aria-hidden="true"><code class="language-python" id="code-highlight-inner"></code></pre>
-              <textarea id="code-input" class="code-editor" placeholder="# Paste your Python ML code here&#10;&#10;import torch&#10;import torch.nn as nn&#10;&#10;class Policy(nn.Module):&#10;    ..." spellcheck="false"></textarea>
+              <textarea id="code-input" class="code-editor" placeholder="# Paste your Python ML or RL code here&#10;&#10;import torch&#10;import torch.nn as nn&#10;&#10;class Policy(nn.Module):&#10;    ..." spellcheck="false"></textarea>
             </div>
           </div>
           <div class="action-row">
@@ -160,28 +179,23 @@
 
         <!-- Equation Mode -->
         <div id="input-panel-equation" class="input-panel" style="display:none;">
-          <h2 class="input-heading">Your equation, decoded.</h2>
-          <p class="input-subhead">Type, upload, or paste a screenshot — LaTeX, plain text, or image.</p>
+          <h2 class="input-heading" style="font-size:18px;font-weight:700;color:var(--tx1);margin-bottom:4px;">Your equation, decoded.</h2>
+          <p class="input-subhead" style="font-size:13px;color:var(--tx3);margin-bottom:16px;">Type, upload, or paste a screenshot — LaTeX, plain text, or image.</p>
 
-          <!-- Input method tabs -->
           <div class="eq-input-tabs">
             <button class="eq-input-tab active" id="eq-tab-type" data-eqmode="type">✏️ Type</button>
             <button class="eq-input-tab" id="eq-tab-image" data-eqmode="image">🖼️ Image</button>
           </div>
 
-          <!-- Type sub-panel -->
           <div id="eq-panel-type" class="eq-subpanel">
-            <textarea id="equation-input" class="code-editor equation-editor" placeholder="Examples:&#10;  E = mc²&#10;  J(θ) = -E[log π(a|s) · Q(s,a)]&#10;  ∂L/∂w = -2·Σ(y - ŷ)·x&#10;  softmax(x_i) = e^x_i / Σe^x_j" spellcheck="false"></textarea>
-            <!-- Live Preview -->
+            <textarea id="equation-input" class="equation-editor" placeholder="Examples:&#10;  E = mc²&#10;  J(θ) = -E[log π(a|s) · Q(s,a)]&#10;  ∂L/∂w = -2·Σ(y - ŷ)·x&#10;  softmax(x_i) = e^x_i / Σe^x_j" spellcheck="false"></textarea>
             <div id="equation-preview" class="equation-preview" style="display:none;">
               <span class="eq-preview-label">Preview</span>
               <div id="equation-preview-render"></div>
             </div>
           </div>
 
-          <!-- Image sub-panel -->
           <div id="eq-panel-image" class="eq-subpanel" style="display:none;">
-            <!-- Drop zone -->
             <div class="eq-drop-zone" id="eq-drop-zone">
               <input type="file" id="eq-file-input" accept="image/*" style="display:none;">
               <div class="eq-drop-idle" id="eq-drop-idle">
@@ -195,23 +209,20 @@
                 <p class="eq-drop-hint" style="margin-top:10px;">Supports JPG, PNG, WebP, GIF · Max 10 MB</p>
               </div>
             </div>
-            <!-- Image preview -->
             <div class="eq-img-preview" id="eq-img-preview" style="display:none;">
               <div class="eq-img-preview-header">
                 <span class="eq-img-preview-label">📸 Image attached</span>
                 <button class="eq-img-remove" id="eq-img-remove" title="Remove image">✕ Remove</button>
               </div>
-              <img id="eq-img-thumb" class="eq-img-thumb" src="" alt="Equation image preview">
+              <img id="eq-img-thumb" class="eq-img-thumb" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="Equation image preview">
               <p class="eq-img-caption" id="eq-img-caption"></p>
             </div>
-            <!-- Gemini-only note -->
             <div class="eq-img-note" id="eq-img-note">
               <span>📌</span>
-              <span>Image reading requires <strong>Gemini</strong> (the free default). Works best with clear, high-contrast photos or screenshots.</span>
+              <span>Image reading requires <strong>Gemini</strong> (the free default). Works best with clear, high-contrast screenshots.</span>
             </div>
           </div>
 
-          <!-- Optional context for image mode -->
           <div class="eq-context-row" id="eq-context-row" style="display:none;">
             <input type="text" id="eq-context-input" class="eq-context-field" placeholder="Optional: add context or a specific question (e.g. 'This is from reinforcement learning')">
           </div>
@@ -222,14 +233,15 @@
           </div>
         </div>
       </div>
-      
-      <!-- Resizer -->
+
+      <!-- RESIZER -->
       <div class="app-resizer" id="app-resizer">
         <div class="resizer-handle"></div>
       </div>
 
-      <!-- Right Column: Results -->
+      <!-- RIGHT COLUMN -->
       <div class="right-col">
+
         <!-- Loading -->
         <div class="loading-container">
           <div class="spinner"></div>
@@ -246,82 +258,133 @@
         <!-- Placeholder -->
         <div class="results-placeholder" id="results-placeholder">
           <div class="placeholder-icon">~</div>
-          <h3>No code yet</h3>
+          <h3>Nothing here yet</h3>
           <p>Paste your Python ML or RL code on the left, then click <strong>Explain</strong> or <strong>Visualize</strong> to begin.</p>
         </div>
 
         <!-- Results -->
         <section class="results-section">
-          <div class="results-header">
-            <span class="results-title">Results</span>
-            <span class="results-badge" id="results-badge">Powered by: —</span>
-          </div>
-          <div class="result-tabs">
-            <button class="result-tab active" data-tab="explanation">📝 Code Explanation</button>
-            <button class="result-tab" data-tab="visual">🎨 Visual</button>
-            <button class="result-tab" data-tab="equation">∑ Equation</button>
+          <div class="right-page-header">
+            <h2 class="results-title">Results</h2>
+            <p class="results-meta">
+              Powered by: <span id="results-badge" class="results-badge">—</span>
+            </p>
+            <div class="result-tabs">
+              <button class="result-tab active" data-tab="explanation">📝 Code Explanation</button>
+              <button class="result-tab" data-tab="visual">🎨 Visual</button>
+              <button class="result-tab" data-tab="equation">∑ Equation</button>
+            </div>
           </div>
 
           <!-- Explanation Tab -->
           <div class="tab-content active" id="tab-explanation">
-            <div class="diagram-toolbar" id="toolbar-explanation" style="display:none; justify-content: flex-end; margin-bottom: 16px;">
-              <button class="diagram-btn" onclick="exportExplanation('md')">↓ Save MD</button>
-              <button class="diagram-btn" onclick="exportExplanation('pdf')">↓ Save PDF</button>
+            <div class="tab-body">
+              <div class="diagram-toolbar" id="toolbar-explanation">
+                <button class="diagram-btn" onclick="exportExplanation('md')">↓ Save MD</button>
+                <button class="diagram-btn" onclick="exportExplanation('pdf')">↓ Save PDF</button>
+              </div>
+              <div class="explanation-content" id="explanation-content"></div>
             </div>
-            <div class="explanation-content" id="explanation-content"></div>
           </div>
 
           <!-- Visual Tab -->
           <div class="tab-content" id="tab-visual">
-            <div class="diagrams-grid">
-              <div class="diagram-card">
-                <h4>🧠 Concept Map</h4>
-                <div class="diagram-toolbar" id="toolbar-concept" style="display:none;">
-                  <button class="diagram-btn" onclick="zoomDiagram('concept', 0.2)">+ Zoom</button>
-                  <button class="diagram-btn" onclick="zoomDiagram('concept', -0.2)">− Zoom</button>
-                  <button class="diagram-btn" onclick="openDiagramInNewTab('concept')">↗ Open</button>
-                  <button class="diagram-btn" onclick="saveDiagram('concept', 'svg')">↓ SVG</button>
-                  <button class="diagram-btn" onclick="saveDiagram('concept', 'png')">↓ PNG</button>
-                  <button class="diagram-btn" onclick="saveDiagram('concept', 'pdf')">↓ PDF</button>
+            <div class="tab-body">
+              <div class="diagrams-grid">
+                <div class="diagram-card">
+                  <h4>🧠 Concept Map</h4>
+                  <div class="diagram-toolbar" id="toolbar-concept" style="display:none;">
+                    <button class="diagram-btn" onclick="zoomDiagram('concept', 0.2)">+ Zoom</button>
+                    <button class="diagram-btn" onclick="zoomDiagram('concept', -0.2)">− Zoom</button>
+                    <button class="diagram-btn" onclick="openDiagramInNewTab('concept')">↗ Open</button>
+                    <button class="diagram-btn" onclick="saveDiagram('concept', 'svg')">↓ SVG</button>
+                    <button class="diagram-btn" onclick="saveDiagram('concept', 'png')">↓ PNG</button>
+                  </div>
+                  <div class="diagram-container">
+                    <div id="diagram-concept"></div>
+                  </div>
                 </div>
-                <div class="diagram-container">
-                  <div id="diagram-concept"></div>
+                <div class="diagram-card">
+                  <h4>⚙️ Execution Flow</h4>
+                  <div class="diagram-toolbar" id="toolbar-flowchart" style="display:none;">
+                    <button class="diagram-btn" onclick="zoomDiagram('flowchart', 0.2)">+ Zoom</button>
+                    <button class="diagram-btn" onclick="zoomDiagram('flowchart', -0.2)">− Zoom</button>
+                    <button class="diagram-btn" onclick="openDiagramInNewTab('flowchart')">↗ Open</button>
+                    <button class="diagram-btn" onclick="saveDiagram('flowchart', 'svg')">↓ SVG</button>
+                    <button class="diagram-btn" onclick="saveDiagram('flowchart', 'png')">↓ PNG</button>
+                  </div>
+                  <div class="diagram-container">
+                    <div id="diagram-flow"></div>
+                  </div>
                 </div>
               </div>
-              <div class="diagram-card">
-                <h4>⚙️ Execution Flow</h4>
-                <div class="diagram-toolbar" id="toolbar-flowchart" style="display:none;">
-                  <button class="diagram-btn" onclick="zoomDiagram('flowchart', 0.2)">+ Zoom</button>
-                  <button class="diagram-btn" onclick="zoomDiagram('flowchart', -0.2)">− Zoom</button>
-                  <button class="diagram-btn" onclick="openDiagramInNewTab('flowchart')">↗ Open</button>
-                  <button class="diagram-btn" onclick="saveDiagram('flowchart', 'svg')">↓ SVG</button>
-                  <button class="diagram-btn" onclick="saveDiagram('flowchart', 'png')">↓ PNG</button>
-                  <button class="diagram-btn" onclick="saveDiagram('flowchart', 'pdf')">↓ PDF</button>
-                </div>
-                <div class="diagram-container">
-                  <div id="diagram-flow"></div>
-                </div>
+              <div class="walkthrough-card">
+                <h4>📖 Plain English Walkthrough</h4>
+                <div id="walkthrough-content"></div>
               </div>
-            </div>
-            <div class="walkthrough-card">
-              <h4>📖 Plain English Walkthrough</h4>
-              <div id="walkthrough-content"></div>
             </div>
           </div>
 
           <!-- Equation Tab -->
           <div class="tab-content" id="tab-equation">
-            <div class="diagram-toolbar" id="toolbar-equation-export" style="display:none; justify-content: flex-end; margin-bottom: 16px;">
-              <button class="diagram-btn" onclick="exportEquation('md')">↓ Save MD</button>
-              <button class="diagram-btn" onclick="exportEquation('pdf')">↓ Save PDF</button>
+            <div class="tab-body">
+              <div class="diagram-toolbar" id="toolbar-equation-export">
+                <button class="diagram-btn" onclick="exportEquation('md')">↓ Save MD</button>
+                <button class="diagram-btn" onclick="exportEquation('pdf')">↓ Save PDF</button>
+              </div>
+              <div class="explanation-content" id="equation-content"></div>
             </div>
-            <div class="explanation-content" id="equation-content"></div>
           </div>
         </section>
+
       </div>
     </div>
   </div>
 
   <script src="app.js"></script>
+
+  <script>
+    // ── Breadcrumb update on mode switch ──
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.input-mode-tab').forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          var bc = document.getElementById('breadcrumb-mode');
+          if (bc) bc.textContent = tab.dataset.mode === 'code' ? 'Code Explainer' : 'Equation Decoder';
+        });
+      });
+    });
+
+    // ── Theme toggle (overrides app.js version to use SVG icons) ──
+    function toggleTheme() {
+      var html = document.documentElement;
+      var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('ml_theme', next);
+      updateThemeIcon(next);
+      var prismTheme = document.getElementById('prism-theme-css');
+      if (prismTheme) {
+        prismTheme.href = next === 'dark'
+          ? 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css'
+          : 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css';
+      }
+      mermaid.initialize({
+        startOnLoad: false,
+        ...(next === 'dark'
+          ? { theme: 'base', themeVariables: { primaryColor: '#2A2A27', primaryTextColor: '#E5E5E0', lineColor: '#555', primaryBorderColor: '#444', background: '#191919', mainBkg: '#191919', nodeBorder: '#444', clusterBkg: '#222', titleColor: '#E5E5E0', edgeLabelBackground: '#191919' }}
+          : { theme: 'base', themeVariables: { primaryColor: '#F3F2EE', primaryTextColor: '#1A1A18', lineColor: '#999', primaryBorderColor: '#D0CEC8', background: '#fff', mainBkg: '#fff', nodeBorder: '#D0CEC8', clusterBkg: '#ECEAE4', titleColor: '#1A1A18', edgeLabelBackground: '#fff' }})
+      });
+    }
+
+    function updateThemeIcon(theme) {
+      var btn = document.getElementById('theme-toggle');
+      if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var t = document.documentElement.getAttribute('data-theme') || 'light';
+      updateThemeIcon(t);
+    });
+  </script>
+
 </body>
 </html>
