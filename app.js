@@ -1409,7 +1409,8 @@ function renderBreakdownSection(heading, body) {
           return `
             <div class="breakdown-item">
               <div class="breakdown-item-header">
-                <strong>⌨️ ${inlineFormat(escapeHtml(block.title))}</strong>
+                <span class="breakdown-item-icon">⌨️</span>
+                <strong>${inlineFormat(escapeHtml(block.title))}</strong>
                 <span class="breakdown-chevron">▸</span>
               </div>
               <div class="breakdown-item-body">
@@ -1917,7 +1918,7 @@ function renderMarkdown(text) {
       output.push(
         `<div class="breakdown-item">` +
           `<div class="breakdown-item-header">` +
-            `<strong>⌨️ ${inlineFormat(escapeHtml(title))}</strong>` +
+            `<strong>${inlineFormat(escapeHtml(title))}</strong>` +
             `<span class="breakdown-chevron">▸</span>` +
           `</div>` +
           `<div class="breakdown-item-body">${subHtml}</div>` +

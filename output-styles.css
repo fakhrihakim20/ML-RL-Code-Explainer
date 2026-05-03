@@ -238,6 +238,12 @@
 [data-theme="dark"] .breakdown-item-header         { background: var(--bg-elevated, #252523); }
 [data-theme="dark"] .breakdown-item-header:hover   { background: #2e2e2b; }
 
+.breakdown-item-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
 .breakdown-chevron {
   font-size: 0.75rem;
   color: var(--text-muted, #6b7280);
