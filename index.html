@@ -7,6 +7,7 @@
   <title>ML Code Explainer</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
     (function(){
       const saved = localStorage.getItem('ml_theme');
@@ -175,6 +176,10 @@ class Policy(nn.Module):
 
           <!-- Explanation Tab -->
           <div class="tab-content active" id="tab-explanation">
+            <div class="diagram-toolbar" id="toolbar-explanation" style="display:none; justify-content: flex-end; margin-bottom: 16px;">
+              <button class="diagram-btn" onclick="exportExplanation('md')">↓ Save MD</button>
+              <button class="diagram-btn" onclick="exportExplanation('pdf')">↓ Save PDF</button>
+            </div>
             <div class="explanation-content" id="explanation-content"></div>
           </div>
 
@@ -187,7 +192,9 @@ class Policy(nn.Module):
                   <button class="diagram-btn" onclick="zoomDiagram('concept', 0.2)">+ Zoom</button>
                   <button class="diagram-btn" onclick="zoomDiagram('concept', -0.2)">− Zoom</button>
                   <button class="diagram-btn" onclick="openDiagramInNewTab('concept')">↗ Open</button>
-                  <button class="diagram-btn" onclick="saveDiagram('concept')">↓ Save</button>
+                  <button class="diagram-btn" onclick="saveDiagram('concept', 'svg')">↓ SVG</button>
+                  <button class="diagram-btn" onclick="saveDiagram('concept', 'png')">↓ PNG</button>
+                  <button class="diagram-btn" onclick="saveDiagram('concept', 'pdf')">↓ PDF</button>
                 </div>
                 <div class="diagram-container">
                   <div id="diagram-concept"></div>
@@ -199,7 +206,9 @@ class Policy(nn.Module):
                   <button class="diagram-btn" onclick="zoomDiagram('flowchart', 0.2)">+ Zoom</button>
                   <button class="diagram-btn" onclick="zoomDiagram('flowchart', -0.2)">− Zoom</button>
                   <button class="diagram-btn" onclick="openDiagramInNewTab('flowchart')">↗ Open</button>
-                  <button class="diagram-btn" onclick="saveDiagram('flowchart')">↓ Save</button>
+                  <button class="diagram-btn" onclick="saveDiagram('flowchart', 'svg')">↓ SVG</button>
+                  <button class="diagram-btn" onclick="saveDiagram('flowchart', 'png')">↓ PNG</button>
+                  <button class="diagram-btn" onclick="saveDiagram('flowchart', 'pdf')">↓ PDF</button>
                 </div>
                 <div class="diagram-container">
                   <div id="diagram-flow"></div>

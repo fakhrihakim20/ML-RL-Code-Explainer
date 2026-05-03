@@ -718,6 +718,9 @@ function renderExplanation(text) {
       item.classList.toggle('collapsed');
     });
   });
+
+  const toolbar = $('#toolbar-explanation');
+  if (toolbar) toolbar.style.display = 'flex';
 }
 
 function sanitizeMermaid(code) {
@@ -808,7 +811,53 @@ function zoomDiagram(label, amount) {
   }
 }
 
-function saveDiagram(label) {
+// ===== EXPORT / SAVE TOOLS =====
+function exportExplanation(format) {
+  if (!STATE.explanationData) return;
+  
+  if (format === 'md') {
+    const blob = new Blob([STATE.explanationData], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'ml_explanation.md';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  } else if (format === 'pdf') {
+    // Expand all accordions before export so content is visible
+    const content = document.getElementById('explanation-content');
+    const items = content.querySelectorAll('.breakdown-item');
+    items.forEach(item => item.classList.remove('collapsed'));
+    
+    // Add temporary styling for PDF to ensure dark/light modes render cleanly
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      content.style.backgroundColor = '#1C1C1A';
+      content.style.color = '#E5E5E0';
+      content.style.padding = '20px';
+    }
+
+    const opt = {
+      margin: 10,
+      filename: 'ml_explanation.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(content).save().then(() => {
+      if (isDark) {
+        content.style.backgroundColor = '';
+        content.style.color = '';
+        content.style.padding = '';
+      }
+    });
+  }
+}
+
+function saveDiagram(label, format = 'svg') {
   const container = document.querySelector(`#diagram-${label === 'concept' ? 'concept' : 'flow'}`);
   if (!container) return;
   const svg = container.querySelector('svg');
@@ -817,17 +866,73 @@ function saveDiagram(label) {
     return;
   }
   
-  const svgData = new XMLSerializer().serializeToString(svg);
-  const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
+  if (format === 'pdf') {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+      container.style.backgroundColor = '#1C1C1A';
+    }
+
+    const opt = {
+      margin: 10,
+      filename: `ml_explainer_${label}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+    
+    html2pdf().set(opt).from(container).save().then(() => {
+      if (isDark) container.style.backgroundColor = '';
+    });
+    return;
+  }
   
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `ml_explainer_${label}.svg`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  setTimeout(() => URL.revokeObjectURL(url), 100);
+  let svgData = new XMLSerializer().serializeToString(svg);
+  if (!svgData.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+    svgData = svgData.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+
+  if (format === 'svg') {
+    const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `ml_explainer_${label}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  } else if (format === 'png') {
+    const canvas = document.createElement('canvas');
+    const rect = svg.getBoundingClientRect();
+    const scale = 3; // high resolution
+    
+    // Explicitly parse width/height if getBoundingClientRect is wonky due to CSS transforms
+    const width = parseFloat(svg.getAttribute('width') || rect.width || 800);
+    const height = parseFloat(svg.getAttribute('height') || rect.height || 600);
+    
+    canvas.width = width * scale;
+    canvas.height = height * scale;
+    const ctx = canvas.getContext('2d');
+    
+    ctx.fillStyle = document.documentElement.getAttribute('data-theme') === 'dark' ? '#1C1C1A' : '#FAF9F6';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    const img = new Image();
+    // SVG MUST be base64 encoded for canvas to draw it cleanly without tainting or missing elements
+    const svgBase64 = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+    
+    img.onload = function() {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const pngUrl = canvas.toDataURL('image/png');
+      const link = document.createElement("a");
+      link.href = pngUrl;
+      link.download = `ml_explainer_${label}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
+    img.src = svgBase64;
+  }
 }
 
 function openDiagramInNewTab(label) {
@@ -1099,6 +1204,9 @@ function clearAll() {
   hideError();
   STATE.explanationData = null;
   STATE.visualData = null;
+  // Hide explanation toolbar
+  const expToolbar = $('#toolbar-explanation');
+  if (expToolbar) expToolbar.style.display = 'none';
   // Show placeholder again
   const ph = $('#results-placeholder');
   if (ph) ph.classList.remove('hidden');
