@@ -1334,10 +1334,17 @@ function renderBreakdownSection(heading, body) {
     // Strip leading bullet/dash before bold: "* **Title:**" → "**Title:**"
     const stripped = line.replace(/^[-*•]\s+/, '');
 
-    // Match "**Title:**", "**Title:** body", or "**Title**" (no colon required)
-    const match =
-      stripped.match(/^\*\*([^*]+?)\*\*[:\s]+(.*)$/) ||
-      stripped.match(/^\*\*([^*]+?)\*\*$/);
+    // Match "**Title:**", "**Title:** body", "**Title**", or malformed "* Title**" / "Title**"
+    let match = stripped.match(/^\*\*([^*]+?)\*\*[:\s]+(.*)$/) || stripped.match(/^\*\*([^*]+?)\*\*$/);
+    
+    if (!match) {
+      // Fallback for malformed AI output like "* Docstring and Initial Setup** [Lines 1-38]"
+      // The leading bullet was stripped, so it looks like "Docstring and Initial Setup** [Lines 1-38]"
+      const malformedMatch = stripped.match(/^([a-zA-Z0-9\s-]+?)\*\*[:\s]+(.*)$/) || stripped.match(/^([a-zA-Z0-9\s-]+?)\*\*\s*(\[.*)$/);
+      if (malformedMatch) {
+        match = malformedMatch;
+      }
+    }
 
     if (match) {
       // Clean trailing ** or * from title (AI sometimes forgets to close)
@@ -1351,11 +1358,11 @@ function renderBreakdownSection(heading, body) {
           let peek = i + 1;
           while (peek < rawLines.length && !rawLines[peek].trim()) peek++;
           const peekLine = (rawLines[peek] || '').trim().replace(/^[-*•]\s+/, '');
-          if (peek >= rawLines.length || /^\*\*/.test(peekLine)) break;
+          if (peek >= rawLines.length || /^\*\*/.test(peekLine) || /^[a-zA-Z0-9\s-]+?\*\*/.test(peekLine)) break;
           i++; continue;
         }
         // Next bold title → start new block
-        if (/^\*\*/.test(next)) break;
+        if (/^\*\*/.test(next) || /^[a-zA-Z0-9\s-]+?\*\*/.test(next)) break;
         // Skip sub-heading lines that crept in
         if (/^#{1,6}[\s#]/.test(rawLines[i].trim()) || rawLines[i].trim() === '#') { i++; continue; }
         content += '\n' + rawLines[i];
@@ -1364,7 +1371,7 @@ function renderBreakdownSection(heading, body) {
       // Sanitize content: remove lone asterisks / hashes
       const cleanContent = content
         .split('\n')
-        .map(l => l.replace(/^\s*[#*]\s*$/, '').trim())
+        .map(l => l.replace(/^\s*[#*]+\s*$/, '').trim())
         .filter(l => l)
         .join('\n');
       blocks.push({ title, content: cleanContent });
@@ -1375,7 +1382,7 @@ function renderBreakdownSection(heading, body) {
     }
   }
 
-  if (blocks.length === 0) return renderDefaultSection(heading, body);
+  if (blocks.length === 0) return renderDefaultSection(heading, rawLines.join('\n'));
 
   function parseBlockContent(content) {
     const analogyRx = /(Think of it like[^.]*\.)/i;
@@ -1419,21 +1426,30 @@ function renderBreakdownSection(heading, body) {
 
 // ── 4. Concept Dictionary ────────────────────────────────────
 function renderConceptSection(heading, body) {
-  const lines = body.split('\n');
+  const rawLines = body.split('\n').filter(line => {
+    const t = line.trim();
+    if (/^#{1,6}\s/.test(t) || /^#{1,6}$/.test(t)) return false;
+    return true;
+  });
+  
   const concepts = [];
   let i = 0;
 
-  while (i < lines.length) {
-    const line = lines[i].trim();
+  while (i < rawLines.length) {
+    const line = rawLines[i].trim();
     if (!line) { i++; continue; }
-    const match = line.match(/^\*\*([^*]+)\*\*[:\s]+(.*)$/);
+    
+    const stripped = line.replace(/^[-*•]\s+/, '');
+    const match = stripped.match(/^\*\*([^*]+)\*\*[:\s]+(.*)$/) || stripped.match(/^([a-zA-Z0-9\s-]+?)\*\*[:\s]+(.*)$/);
+    
     if (match) {
-      const term = match[1].trim();
+      const term = match[1].trim().replace(/\*+$/, '').replace(/^\*+/, '');
       let content = match[2].trim();
       i++;
-      while (i < lines.length) {
-        const next = lines[i].trim();
-        if (!next || /^\*\*/.test(next) || /^[-*]\s/.test(next)) break;
+      while (i < rawLines.length) {
+        const next = rawLines[i].trim();
+        if (!next || /^\*\*/.test(next) || /^[-*]\s/.test(next) || /^[a-zA-Z0-9\s-]+?\*\*[:\s]/.test(next)) break;
+        if (/^#{1,6}[\s#]/.test(next) || next === '#') { i++; continue; }
         content += ' ' + next;
         i++;
       }
@@ -1448,7 +1464,7 @@ function renderConceptSection(heading, body) {
     } else { i++; }
   }
 
-  if (concepts.length === 0) return renderDefaultSection(heading, body);
+  if (concepts.length === 0) return renderDefaultSection(heading, rawLines.join('\n'));
 
   const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
@@ -1483,20 +1499,26 @@ function renderNarrativeSection(heading, body) {
 
 // ── 6. Confusion Callouts ────────────────────────────────────
 function renderConfusionSection(heading, body) {
-  const lines = body.split('\n');
+  const rawLines = body.split('\n').filter(line => {
+    const t = line.trim();
+    if (/^#{1,6}\s/.test(t) || /^#{1,6}$/.test(t)) return false;
+    return true;
+  });
   const items = [];
   let i = 0;
-  while (i < lines.length) {
-    const line = lines[i].trim();
+  while (i < rawLines.length) {
+    const line = rawLines[i].trim();
     if (!line) { i++; continue; }
-    const match = line.match(/^\*\*([^*]+)\*\*[:\s]+(.*)$/);
+    const stripped = line.replace(/^[-*•]\s+/, '');
+    const match = stripped.match(/^\*\*([^*]+)\*\*[:\s]+(.*)$/) || stripped.match(/^([a-zA-Z0-9\s-]+?)\*\*[:\s]+(.*)$/);
     if (match) {
-      const trigger = match[1].trim();
+      const trigger = match[1].trim().replace(/\*+$/, '').replace(/^\*+/, '');
       let content = match[2].trim();
       i++;
-      while (i < lines.length) {
-        const next = lines[i].trim();
-        if (!next || /^\*\*/.test(next)) break;
+      while (i < rawLines.length) {
+        const next = rawLines[i].trim();
+        if (!next || /^\*\*/.test(next) || /^[-*]\s/.test(next) || /^[a-zA-Z0-9\s-]+?\*\*[:\s]/.test(next)) break;
+        if (/^#{1,6}[\s#]/.test(next) || next === '#') { i++; continue; }
         content += ' ' + next; i++;
       }
       items.push({ trigger, content });
@@ -1507,7 +1529,7 @@ function renderConfusionSection(heading, body) {
     }
   }
 
-  if (items.length === 0) return renderDefaultSection(heading, body);
+  if (items.length === 0) return renderDefaultSection(heading, rawLines.join('\n'));
   const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--confusion">
@@ -1841,11 +1863,17 @@ function renderMarkdown(text) {
     const line = lines[i];
     const trimmed = line.trim();
     if (!trimmed) { i++; continue; }
+    // Ignore standalone hash lines
+    if (/^#{1,6}[\s#]*$/.test(trimmed)) { i++; continue; }
 
     // Bold-key bullet → collapsible (kept for fallback sections)
-    const sectionMatch = trimmed.match(/^[-*]\s+\*\*(.+?)\*\*\s*[:\uff1a]?\s*(.*)$/);
-    if (sectionMatch) {
-      const title = sectionMatch[1];
+    // Matches "* **Title**", "* Title**", "**Title**"
+    const stripped = trimmed.replace(/^[-*•]\s+/, '');
+    const sectionMatch = stripped.match(/^\*\*([^*]+?)\*\*[:\s]*(.*)$/) || stripped.match(/^([a-zA-Z0-9\s-]+?)\*\*[:\s]+(.*)$/) || stripped.match(/^([a-zA-Z0-9\s-]+?)\*\*\s*(\[.*)$/);
+    
+    // Only use the section layout if the line originally started with a bullet or if it's explicitly bolded text
+    if (sectionMatch && (trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.startsWith('**'))) {
+      const title = sectionMatch[1].trim().replace(/\*+$/, '').replace(/^\*+/, '');
       const trailingText = (sectionMatch[2] || '').trim();
       const subItems = [];
       if (trailingText) subItems.push(trailingText);
