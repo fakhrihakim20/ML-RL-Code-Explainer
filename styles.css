@@ -375,7 +375,7 @@ select option { background: var(--bg); }
 .btn-outline:disabled { opacity: .4; cursor: not-allowed; }
 
 .btn-ghost {
-  height: 34px; padding: 0 12px;
+  flex: 1; height: 34px; padding: 0 12px;
   background: transparent; color: var(--tx3);
   border: 1px solid var(--bd); border-radius: var(--r-sm);
   font-family: var(--font-ui); font-size: 12px;
@@ -715,7 +715,6 @@ select option { background: var(--bg); }
   .input-panel { padding: 16px 20px 20px; }
   .tab-body { padding: 16px 20px 32px; }
   .right-page-header { padding: 20px 20px 0; }
-  .action-row { flex-direction: column; }
   .page-title { font-size: 20px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
