@@ -11,6 +11,10 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+  <!-- Prism.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" id="prism-theme-css">
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
@@ -142,7 +146,10 @@
           <p class="input-subhead">Paste any Python ML or RL code below.</p>
           <div class="code-editor-wrap" id="code-editor-wrap">
             <div class="line-nums" id="line-nums"><div class="ln-num">1</div></div>
-            <textarea id="code-input" class="code-editor" placeholder="# Paste your Python ML code here&#10;&#10;import torch&#10;import torch.nn as nn&#10;&#10;class Policy(nn.Module):&#10;    ..." spellcheck="false"></textarea>
+            <div class="code-input-container">
+              <pre id="code-highlight" aria-hidden="true"><code class="language-python" id="code-highlight-inner"></code></pre>
+              <textarea id="code-input" class="code-editor" placeholder="# Paste your Python ML code here&#10;&#10;import torch&#10;import torch.nn as nn&#10;&#10;class Policy(nn.Module):&#10;    ..." spellcheck="false"></textarea>
+            </div>
           </div>
           <div class="action-row">
             <button class="btn-primary" id="btn-explain">Explain</button>

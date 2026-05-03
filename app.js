@@ -183,6 +183,12 @@ function toggleTheme() {
   html.setAttribute('data-theme', next);
   localStorage.setItem('ml_theme', next);
   updateThemeIcon(next);
+  const prismTheme = $('#prism-theme-css');
+  if (prismTheme) {
+    prismTheme.href = next === 'dark'
+      ? 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css'
+      : 'https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css';
+  }
   const mermaidTheme = next === 'dark'
     ? { theme: 'base', themeVariables: { primaryColor: '#2A2A27', primaryTextColor: '#E5E5E0', lineColor: '#555', primaryBorderColor: '#444', background: '#1C1C1A', mainBkg: '#1C1C1A', nodeBorder: '#444', clusterBkg: '#252523', titleColor: '#E5E5E0', edgeLabelBackground: '#1C1C1A' }}
     : { theme: 'base', themeVariables: { primaryColor: '#F3F2EE', primaryTextColor: '#1A1A18', lineColor: '#999', primaryBorderColor: '#D0CEC8', background: '#FAF9F6', mainBkg: '#FAF9F6', nodeBorder: '#D0CEC8', clusterBkg: '#ECEAE4', titleColor: '#1A1A18', edgeLabelBackground: '#FAF9F6' }};
@@ -305,11 +311,12 @@ function bindEvents() {
   // Line number gutter sync
   const codeInput = $('#code-input');
   if (codeInput) {
-    codeInput.addEventListener('input',  () => syncLineNumbers());
-    codeInput.addEventListener('scroll', () => syncLineNumbers());
+    codeInput.addEventListener('input',  () => { syncLineNumbers(); updateHighlight(); });
+    codeInput.addEventListener('scroll', () => { syncLineNumbers(); syncHighlightScroll(); });
     codeInput.addEventListener('keyup',  () => syncLineNumbers());
-    codeInput.addEventListener('paste',  () => setTimeout(syncLineNumbers, 0));
+    codeInput.addEventListener('paste',  () => setTimeout(() => { syncLineNumbers(); updateHighlight(); }, 0));
     syncLineNumbers();
+    updateHighlight();
   }
   $('#eq-btn-paste-img').addEventListener('click', () => triggerPasteImage());
   $('#eq-img-remove').addEventListener('click', clearEquationImage);
@@ -331,6 +338,23 @@ function handleGlobalPaste(e) {
   e.preventDefault();
   const file = imgItem.getAsFile();
   if (file) handleEquationImageFile(file);
+}
+
+function updateHighlight() {
+  const ta = $('#code-input');
+  const hl = $('#code-highlight-inner');
+  if (!ta || !hl) return;
+  hl.textContent = ta.value;
+  if (window.Prism) Prism.highlightElement(hl);
+}
+
+function syncHighlightScroll() {
+  const ta = $('#code-input');
+  const pre = $('#code-highlight');
+  if (ta && pre) {
+    pre.scrollTop = ta.scrollTop;
+    pre.scrollLeft = ta.scrollLeft;
+  }
 }
 
 function triggerPasteImage() {
@@ -996,7 +1020,7 @@ function renderEquationSection(heading, body) {
 }
 
 function renderEqHeroSection(heading, body) {
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--hero eq-hero">
       <div class="exp-section-header">
@@ -1032,7 +1056,7 @@ function renderEqSymbolSection(heading, body) {
     } else { i++; }
   }
   if (symbols.length === 0) return renderDefaultSection(heading, body);
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--concepts eq-symbols">
       <div class="exp-section-header">
@@ -1051,7 +1075,7 @@ function renderEqSymbolSection(heading, body) {
 }
 
 function renderEqIntuitionSection(heading, body) {
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--narrative eq-intuition">
       <div class="exp-section-header">
@@ -1079,7 +1103,7 @@ function renderEqApplicationsSection(heading, body) {
     i++;
   }
   if (apps.length === 0) return renderDefaultSection(heading, body);
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--tips eq-applications">
       <div class="exp-section-header">
@@ -1106,7 +1130,7 @@ function renderEqStepsSection(heading, body) {
     else steps.push(t);
   });
   if (steps.length === 0) return renderDefaultSection(heading, body);
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--roadmap eq-steps">
       <div class="exp-section-header">
@@ -1196,7 +1220,7 @@ function renderSection(heading, body) {
 
 // ── 1. Hero ──────────────────────────────────────────────────
 function renderHeroSection(heading, body) {
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--hero">
       <div class="exp-section-header">
@@ -1228,7 +1252,7 @@ function renderDifficultySection(heading, body) {
     if (numMatch) prereqs.push({ term: null, desc: numMatch[1] });
   }
 
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--difficulty">
       <div class="exp-section-header">
@@ -1328,7 +1352,7 @@ function renderBreakdownSection(heading, body) {
     return { mainText, analogy, tricky };
   }
 
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--breakdown">
       <div class="exp-section-header">
@@ -1388,7 +1412,7 @@ function renderConceptSection(heading, body) {
 
   if (concepts.length === 0) return renderDefaultSection(heading, body);
 
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--concepts">
       <div class="exp-section-header">
@@ -1408,7 +1432,7 @@ function renderConceptSection(heading, body) {
 
 // ── 5. Narrative ─────────────────────────────────────────────
 function renderNarrativeSection(heading, body) {
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--narrative">
       <div class="exp-section-header">
@@ -1446,7 +1470,7 @@ function renderConfusionSection(heading, body) {
   }
 
   if (items.length === 0) return renderDefaultSection(heading, body);
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--confusion">
       <div class="exp-section-header">
@@ -1500,7 +1524,7 @@ function renderTipsSection(heading, body) {
   }
 
   if (tips.length === 0) return renderDefaultSection(heading, body);
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--tips">
       <div class="exp-section-header">
@@ -1534,7 +1558,7 @@ function renderRoadmapSection(heading, body) {
   });
 
   if (steps.length === 0) return renderDefaultSection(heading, body);
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--roadmap">
       <div class="exp-section-header">
@@ -1556,7 +1580,7 @@ function renderRoadmapSection(heading, body) {
 function renderDefaultSection(heading, body) {
   const iconMatch = heading.match(/^(\p{Emoji})/u);
   const icon = iconMatch ? iconMatch[1] : '📌';
-  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
     <div class="exp-section exp-section--default">
       <div class="exp-section-header">
