@@ -817,6 +817,45 @@ async function callOpenRouter(token, systemPrompt, userCode) {
   throw new Error('Unexpected OpenRouter response. Check browser console for details.');
 }
 
+async function callOpenRouterWithImage(token, systemPrompt, userText, imageObj) {
+  const model = STATE.orModel || 'google/gemma-4-31b-it:free';
+  console.log('[OpenRouter Multimodal] Calling model:', model);
+  
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    { 
+      role: 'user', 
+      content: [
+        { type: 'text', text: userText },
+        { type: 'image_url', image_url: { url: imageObj.dataUrl } }
+      ]
+    }
+  ];
+
+  const res = await fetchWithRetry('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json',
+      'HTTP-Referer': 'ml-code-explainer', 'X-Title': 'ML Code Explainer'
+    },
+    body: JSON.stringify({
+      model, messages,
+      temperature: 0.4, max_tokens: 8000
+    })
+  });
+  const data = await res.json();
+  console.log('[OpenRouter Multimodal] Status:', res.status, JSON.stringify(data).substring(0, 500));
+  if (!res.ok) throw new Error(`OpenRouter: ${data?.error?.message || data?.error?.code || 'API error: ' + res.status}`);
+  if (data.error) throw new Error(`OpenRouter: ${data.error.message || JSON.stringify(data.error)}`);
+  if (data.choices?.length > 0) {
+    const choice = data.choices[0];
+    const content = choice.message?.content || choice.text || '';
+    if (content) return content;
+    if (choice.finish_reason === 'content_filter') throw new Error('content_filter');
+  }
+  throw new Error('Unexpected OpenRouter response. Check browser console for details.');
+}
+
 // ===== EXPLAIN =====
 async function runExplain() {
   saveToken();
@@ -933,15 +972,20 @@ async function runExplainEquation() {
     let text;
     if (hasImage) {
       // Multimodal path — image (+ optional text context)
-      if (STATE.provider !== 'gemini') {
-        throw new Error('Image input is only supported with the Gemini provider. Please switch to Gemini in API Setup.');
+      if (STATE.provider !== 'gemini' && STATE.provider !== 'openrouter') {
+        throw new Error('Image input is only supported with Gemini or OpenRouter vision models.');
       }
       const token = getToken();
-      if (!token) throw new Error('No API token found. Please save your Gemini token in the Setup section.');
+      if (!token) throw new Error(`No API token found. Please save your ${STATE.provider} token in the Setup section.`);
       const contextPart = contextText ? `\n\nAdditional context from the user: ${contextText}` : '';
       const eqPart = eqText ? `\n\nThe user also typed this equation or note: ${eqText}` : '';
       const userMsg = `Please explain the equation shown in this image in full detail.${eqPart}${contextPart}`;
-      text = await callGeminiWithImage(token, SYSTEM_PROMPT_EQUATION, userMsg, STATE.equationImage);
+      
+      if (STATE.provider === 'openrouter') {
+        text = await callOpenRouterWithImage(token, SYSTEM_PROMPT_EQUATION, userMsg, STATE.equationImage);
+      } else {
+        text = await callGeminiWithImage(token, SYSTEM_PROMPT_EQUATION, userMsg, STATE.equationImage);
+      }
     } else {
       // Text-only path
       const userMsg = `Please explain the following equation in full detail:\n\n${eqText}${contextText ? '\n\nContext: ' + contextText : ''}`;
