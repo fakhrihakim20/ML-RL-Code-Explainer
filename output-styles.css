@@ -1,0 +1,621 @@
+/* =============================================================
+   output-styles.css
+   Section-aware styles for the ML Code Explainer output.
+   Add <link rel="stylesheet" href="output-styles.css"> to your HTML.
+   Integrates with existing CSS custom-property theme variables.
+   ============================================================= */
+
+/* ─────────────────────────────────────────────────────────────
+   BASE SECTION CARD
+   Every section gets this foundation: rounded card, subtle border,
+   consistent padding. Specialised sections extend it.
+   ───────────────────────────────────────────────────────────── */
+.exp-section {
+  background: var(--card-bg, #ffffff);
+  border-radius: 14px;
+  padding: 22px 26px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-left: 4px solid var(--border, #d1d5db);
+  transition: box-shadow 0.2s ease;
+}
+
+.exp-section:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Shared section header: icon + title on one line */
+.exp-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+.exp-section-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.exp-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text, #1a1a18);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* Base paragraph, list, code styles inside any section */
+.exp-section p {
+  margin: 0 0 10px 0;
+  line-height: 1.75;
+  font-size: 0.9rem;
+  color: var(--text, #1a1a18);
+}
+
+.exp-section p:last-child { margin-bottom: 0; }
+
+.exp-section ul, .exp-section ol {
+  padding-left: 20px;
+  margin: 8px 0;
+}
+
+.exp-section li {
+  margin-bottom: 6px;
+  line-height: 1.7;
+  font-size: 0.9rem;
+}
+
+.exp-section code {
+  background: var(--code-bg, #f1f0ec);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.82em;
+  font-family: 'Fira Code', 'Cascadia Code', 'Menlo', monospace;
+  color: var(--code-color, #d63384);
+}
+
+[data-theme="dark"] .exp-section code {
+  background: #2e2e2b;
+  color: #f472b6;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   1. HERO — "🎯 What This Code Does"
+   Warm gradient background, larger text, blue accent border.
+   ───────────────────────────────────────────────────────────── */
+.exp-section--hero {
+  background: linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%);
+  border-color: #BFDBFE;
+  border-left-color: #3B82F6;
+}
+
+[data-theme="dark"] .exp-section--hero {
+  background: linear-gradient(135deg, rgba(30,58,95,0.25) 0%, rgba(6,64,39,0.2) 100%);
+  border-color: rgba(30,58,95,0.5);
+  border-left-color: #3B82F6;
+}
+
+.exp-hero-text {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--text, #1a1a18);
+}
+
+.exp-hero-text p { font-size: 1rem; }
+
+
+/* ─────────────────────────────────────────────────────────────
+   2. DIFFICULTY — "📊 Difficulty & Prerequisites"
+   Purple accent, colored badge, prereq pill list.
+   ───────────────────────────────────────────────────────────── */
+.exp-section--difficulty {
+  border-left-color: #8B5CF6;
+}
+
+.difficulty-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.difficulty-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted, #6b7280);
+}
+
+.difficulty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.difficulty-badge--beginner  { background:#D1FAE5; color:#065F46; border:1px solid #6EE7B7; }
+.difficulty-badge--intermediate { background:#FEF3C7; color:#92400E; border:1px solid #FCD34D; }
+.difficulty-badge--advanced  { background:#FEE2E2; color:#7F1D1D; border:1px solid #FCA5A5; }
+
+[data-theme="dark"] .difficulty-badge--beginner    { background:#064e3b; color:#6ee7b7; border-color:#047857; }
+[data-theme="dark"] .difficulty-badge--intermediate{ background:#78350f; color:#fcd34d; border-color:#b45309; }
+[data-theme="dark"] .difficulty-badge--advanced    { background:#7f1d1d; color:#fca5a5; border-color:#b91c1c; }
+
+.prereq-title {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted, #6b7280);
+  margin-bottom: 10px;
+}
+
+.prereq-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.prereq-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface, #f9f9f7);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  border: 1px solid var(--border, #e5e7eb);
+  line-height: 1.6;
+  color: var(--text, #1a1a18);
+}
+
+.prereq-dot {
+  width: 7px;
+  height: 7px;
+  background: #8B5CF6;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .prereq-item {
+  background: var(--bg-elevated, #252523);
+  border-color: var(--border, #3a3a37);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   3. BREAKDOWN ACCORDION — "🔍 Section-by-Section"
+   Amber accent. Items start open, collapse on click.
+   ───────────────────────────────────────────────────────────── */
+.exp-section--breakdown {
+  border-left-color: #F59E0B;
+  padding-bottom: 8px;
+}
+
+.breakdown-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.breakdown-item {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.breakdown-item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  background: var(--surface, #f9f9f7);
+  user-select: none;
+  transition: background 0.15s;
+}
+
+.breakdown-item-header:hover {
+  background: var(--surface-hover, #f0efeb);
+}
+
+[data-theme="dark"] .breakdown-item-header         { background: var(--bg-elevated, #252523); }
+[data-theme="dark"] .breakdown-item-header:hover   { background: #2e2e2b; }
+
+.breakdown-chevron {
+  font-size: 0.75rem;
+  color: var(--text-muted, #6b7280);
+  transition: transform 0.22s ease;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Open state: chevron rotates, body visible */
+.breakdown-item.open .breakdown-chevron       { transform: rotate(90deg); }
+.breakdown-item.open .breakdown-item-body     { display: block; }
+.breakdown-item:not(.open) .breakdown-item-body { display: none; }
+
+.breakdown-item-body {
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  line-height: 1.72;
+  border-top: 1px solid var(--border, #e5e7eb);
+}
+
+.breakdown-item-body p { margin: 0 0 8px 0; }
+.breakdown-item-body p:last-child { margin-bottom: 0; }
+
+/* Analogy callout inside a breakdown block */
+.bd-analogy {
+  background: #FFFBEB;
+  border-left: 3px solid #F59E0B;
+  padding: 9px 13px;
+  border-radius: 0 7px 7px 0;
+  font-style: italic;
+  font-size: 0.865rem;
+  color: #92400E;
+  margin-top: 10px;
+}
+
+/* "Tricky line" callout */
+.bd-tricky {
+  background: #FEF2F2;
+  border-left: 3px solid #EF4444;
+  padding: 9px 13px;
+  border-radius: 0 7px 7px 0;
+  font-size: 0.865rem;
+  color: #991B1B;
+  margin-top: 8px;
+}
+
+[data-theme="dark"] .bd-analogy {
+  background: rgba(120,53,15,0.18);
+  color: #fcd34d;
+  border-left-color: #F59E0B;
+}
+
+[data-theme="dark"] .bd-tricky {
+  background: rgba(127,29,29,0.2);
+  color: #fca5a5;
+  border-left-color: #EF4444;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   4. CONCEPT DICTIONARY — "🧠 Concept Dictionary"
+   Pink accent. Concepts rendered as a responsive card grid.
+   ───────────────────────────────────────────────────────────── */
+.exp-section--concepts {
+  border-left-color: #EC4899;
+}
+
+.concept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 11px;
+}
+
+.concept-card {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: var(--surface, #f9f9f7);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.concept-card:hover {
+  box-shadow: 0 4px 14px rgba(236, 72, 153, 0.12);
+  transform: translateY(-2px);
+}
+
+.concept-term {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text, #1a1a18);
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.concept-term::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #EC4899;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.concept-def {
+  font-size: 0.855rem;
+  line-height: 1.65;
+  color: var(--text-secondary, #4b5563);
+}
+
+.concept-analogy {
+  font-size: 0.8rem;
+  color: var(--text-muted, #6b7280);
+  font-style: italic;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border, #e5e7eb);
+  line-height: 1.55;
+}
+
+[data-theme="dark"] .concept-card          { background: var(--bg-elevated, #252523); }
+[data-theme="dark"] .concept-def           { color: #9ca3af; }
+[data-theme="dark"] .concept-analogy       { color: #6b7280; }
+
+
+/* ─────────────────────────────────────────────────────────────
+   5. NARRATIVE — "🔗 How the Pieces Work Together"
+   Green accent. Flowing prose with slightly larger text.
+   ───────────────────────────────────────────────────────────── */
+.exp-section--narrative {
+  border-left-color: #10B981;
+}
+
+.narrative-body { font-size: 0.95rem; line-height: 1.85; }
+.narrative-body p { font-size: 0.95rem; }
+
+
+/* ─────────────────────────────────────────────────────────────
+   6. CONFUSION CALLOUTS — "⚠️ Where Beginners Get Confused"
+   Orange accent. Each item is a warning-style callout box.
+   ───────────────────────────────────────────────────────────── */
+.exp-section--confusion {
+  border-left-color: #F97316;
+}
+
+.confusion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.confusion-box {
+  background: #FFF7ED;
+  border: 1px solid #FED7AA;
+  border-left: 3px solid #F97316;
+  border-radius: 0 9px 9px 0;
+  padding: 13px 16px;
+}
+
+.confusion-trigger {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: #9A3412;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+}
+
+.confusion-trigger::before { content: '😕'; }
+
+.confusion-aha {
+  font-size: 0.875rem;
+  line-height: 1.68;
+  color: #7C2D12;
+}
+
+[data-theme="dark"] .confusion-box     { background: rgba(124,45,18,0.15); border-color: rgba(194,65,12,0.3); border-left-color: #F97316; }
+[data-theme="dark"] .confusion-trigger { color: #fb923c; }
+[data-theme="dark"] .confusion-aha     { color: #fed7aa; }
+
+
+/* ─────────────────────────────────────────────────────────────
+   7. TIPS — "💡 Beginner Tips"
+   Cyan accent. Tips as a card grid, each with a lightbulb.
+   ───────────────────────────────────────────────────────────── */
+.exp-section--tips {
+  border-left-color: #06B6D4;
+}
+
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+
+.tip-card {
+  background: #F0FDFA;
+  border: 1px solid #99F6E4;
+  border-radius: 10px;
+  padding: 13px 15px;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: #134E4A;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.tip-card::before {
+  content: '💡';
+  flex-shrink: 0;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+[data-theme="dark"] .tip-card {
+  background: rgba(15,118,110,0.15);
+  border-color: rgba(13,148,132,0.3);
+  color: #99f6e4;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   8. LEARNING ROADMAP — "🗺️ Your Learning Roadmap"
+   Indigo accent. Numbered steps connected by a vertical line.
+   ───────────────────────────────────────────────────────────── */
+.exp-section--roadmap {
+  border-left-color: #6366F1;
+}
+
+.roadmap-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.roadmap-step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  position: relative;
+}
+
+/* The connecting vertical line between steps */
+.roadmap-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 36px;
+  bottom: -8px;
+  width: 2px;
+  background: linear-gradient(to bottom, #6366F1 0%, #C7D2FE 100%);
+  z-index: 0;
+}
+
+.roadmap-step + .roadmap-step {
+  margin-top: 6px;
+  padding-top: 6px;
+}
+
+.roadmap-num {
+  width: 34px;
+  height: 34px;
+  background: #6366F1;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 2px 10px rgba(99, 102, 241, 0.35);
+}
+
+.roadmap-content {
+  padding: 6px 0 18px;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text, #1a1a18);
+}
+
+.roadmap-content strong { color: #4F46E5; }
+
+[data-theme="dark"] .roadmap-content strong { color: #818cf8; }
+
+/* Optional resource box at the bottom of the roadmap */
+.roadmap-resource {
+  margin-top: 14px;
+  padding: 12px 16px;
+  background: #EEF2FF;
+  border-radius: 9px;
+  border: 1px solid #C7D2FE;
+  font-size: 0.875rem;
+  color: #3730A3;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.6;
+}
+
+.roadmap-resource::before { content: '🔗'; flex-shrink: 0; }
+
+[data-theme="dark"] .roadmap-resource {
+  background: rgba(49,46,129,0.2);
+  border-color: rgba(67,56,202,0.35);
+  color: #a5b4fc;
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   DEFAULT FALLBACK — any section not matched above
+   ───────────────────────────────────────────────────────────── */
+.exp-section--default {
+  border-left-color: var(--border, #d1d5db);
+}
+
+
+/* ─────────────────────────────────────────────────────────────
+   WALKTHROUGH TIMELINE (Visual Tab)
+   Step-by-step numbered timeline for the plain-English walkthrough.
+   ───────────────────────────────────────────────────────────── */
+.walkthrough-timeline {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.walkthrough-step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.walkthrough-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 36px;
+  height: calc(100% + 2px);
+  width: 2px;
+  background: linear-gradient(to bottom, #3B82F6, #93C5FD);
+  z-index: 0;
+}
+
+.walkthrough-step + .walkthrough-step { margin-top: 4px; }
+
+.wt-num {
+  width: 34px;
+  height: 34px;
+  background: #3B82F6;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+  margin-top: 2px;
+}
+
+.wt-text {
+  padding: 6px 0 20px;
+  font-size: 0.9rem;
+  line-height: 1.68;
+  color: var(--text, #1a1a18);
+}
