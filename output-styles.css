@@ -376,6 +376,63 @@
 .narrative-body { font-size: 0.95rem; line-height: 1.85; }
 .narrative-body p { font-size: 0.95rem; }
 
+/* Narrative Timeline Styles */
+.narrative-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.narrative-step {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.narrative-step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  left: 16px;
+  top: 36px;
+  bottom: -8px;
+  width: 2px;
+  background: linear-gradient(to bottom, #10B981 0%, #A7F3D0 100%);
+  z-index: 0;
+}
+
+.narrative-step + .narrative-step {
+  margin-top: 6px;
+  padding-top: 6px;
+}
+
+.narrative-num {
+  width: 34px;
+  height: 34px;
+  background: #10B981;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.35);
+}
+
+.narrative-content {
+  padding: 6px 0 18px;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text, #1a1a18);
+}
+.narrative-content p { margin-top: 0; }
+
 
 /* ─────────────────────────────────────────────────────────────
    6. CONFUSION CALLOUTS — "⚠️ Where Beginners Get Confused"

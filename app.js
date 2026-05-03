@@ -1409,7 +1409,7 @@ function renderBreakdownSection(heading, body) {
           return `
             <div class="breakdown-item">
               <div class="breakdown-item-header">
-                <strong>${inlineFormat(escapeHtml(block.title))}</strong>
+                <strong>⌨️ ${inlineFormat(escapeHtml(block.title))}</strong>
                 <span class="breakdown-chevron">▸</span>
               </div>
               <div class="breakdown-item-body">
@@ -1486,13 +1486,28 @@ function renderConceptSection(heading, body) {
 // ── 5. Narrative ─────────────────────────────────────────────
 function renderNarrativeSection(heading, body) {
   const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
+  
+  // Split into paragraphs based on double newlines
+  const paragraphs = body.split(/\n\s*\n/).map(p => p.trim()).filter(p => p);
+  
+  if (paragraphs.length === 0) return renderDefaultSection(heading, body);
+
   return `
     <div class="exp-section exp-section--narrative">
       <div class="exp-section-header">
         <span class="exp-section-icon">🔗</span>
         <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
-      <div class="narrative-body">${renderMarkdown(body)}</div>
+      <div class="narrative-body">
+        <ol class="narrative-steps">
+          ${paragraphs.map((p, idx) => `
+            <li class="narrative-step">
+              <div class="narrative-num">${idx + 1}</div>
+              <div class="narrative-content">${renderMarkdown(p)}</div>
+            </li>
+          `).join('')}
+        </ol>
+      </div>
     </div>`;
 }
 
@@ -1902,7 +1917,7 @@ function renderMarkdown(text) {
       output.push(
         `<div class="breakdown-item">` +
           `<div class="breakdown-item-header">` +
-            `<strong>${inlineFormat(escapeHtml(title))}</strong>` +
+            `<strong>⌨️ ${inlineFormat(escapeHtml(title))}</strong>` +
             `<span class="breakdown-chevron">▸</span>` +
           `</div>` +
           `<div class="breakdown-item-body">${subHtml}</div>` +
