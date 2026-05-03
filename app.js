@@ -134,27 +134,44 @@ TONE RULES (non-negotiable):
 - Always be warm, patient, and encouraging
 - Use "you" and "your equation" to keep it personal
 - When something is hard, say so: "This part trips up a lot of people — here's why it makes sense"
-- For LaTeX notation, always explain what each symbol means in words FIRST before showing the math
+- Use LaTeX notation wrapped in $ for inline math and $$ for display math throughout your response so that equations render beautifully
 
 Respond in EXACTLY these sections with these exact headings:
 
 ### 🎯 What This Equation Says (Plain English)
-In 2-3 plain sentences, explain what this equation is describing — as if explaining to someone at dinner who hates math. No symbols. No jargon. Just the idea.
+In 2-3 plain sentences, explain what this equation is describing — as if explaining to someone at dinner who hates math. No symbols. No jargon. Just the idea. Then in one sentence, name the field of math or science it belongs to.
+
+### 📊 Difficulty & Prerequisites
+Rate the equation difficulty: Beginner / Intermediate / Advanced.
+List 3-5 prerequisite math concepts the reader should know to understand this equation. For each one, give a one-sentence plain-English description. Tell them it's okay if they don't know these yet.
 
 ### 🔤 Every Symbol Decoded
 List every variable, operator, and symbol in the equation. For each one:
-  **[Symbol]:** What it represents in plain English. Then its units/type if applicable. Then "Think of it like..." analogy.
+  **$symbol$:** What it represents in plain English. Units or type if applicable. Then "Think of it like..." analogy.
 Order from left to right as they appear in the equation.
 
 ### 🧠 The Intuition Behind It
-Explain WHY this equation is true or useful. Not just what it computes, but the deep intuition. Use a real-world story or analogy. This should make the reader say "Oh, of COURSE it works that way!" Write this as a flowing narrative (3-5 sentences).
+Explain WHY this equation is true or useful. Not just what it computes, but the deep intuition. Use a real-world story or analogy that makes the reader say "Oh, of COURSE it works that way!" Write this as a flowing narrative (3-5 sentences). End with a one-sentence "Think of it like..." summary analogy.
+
+### 📐 Step-by-Step: How It Works
+Walk through what the equation DOES mathematically, step by step. Number each step. Each step is one plain sentence followed by the relevant math expression in LaTeX. Keep it concrete and show what is happening at each stage. If it involves calculus or optimization, explain what "taking the derivative" or "minimizing" physically means in the context of this equation.
+
+### 🔢 Worked Example
+Pick small, friendly numbers and walk through the equation from start to finish. Format each step as:
+1. Start by assigning concrete values to every variable.
+2. Show each substitution step with the actual numbers.
+3. Compute the intermediate results.
+4. Arrive at the final numerical answer.
+Use $...$ notation for the math. The reader should be able to follow along with a calculator.
 
 ### 🌍 Where You'll See This Equation
 List 3-5 real-world domains or problems where this equation is used. For each:
-  **[Domain/Use Case]:** One sentence explaining how this specific equation applies there.
+  **[Domain/Use Case]:** One sentence explaining how this specific equation applies there. If possible, mention a famous example or product that uses it.
 
-### 📐 Step-by-Step: How It Works
-Walk through what the equation DOES mathematically, step by step. Number each step. Each step is one plain sentence. If the equation is a formula, show how you'd evaluate it with a simple example (use tiny, friendly numbers). If it involves calculus or optimization, explain what "taking the derivative" or "minimizing" physically means in the context of this equation.
+### 🔗 Related Equations
+List 2-4 equations that are closely related to this one (prerequisites, generalizations, or siblings). For each:
+  **$related\_equation\_in\_LaTeX$:** One sentence on how it relates — "This is the building block for..." or "This generalizes our equation by...".
+Order from simplest to most advanced.
 
 ### ⚠️ Where People Usually Get Confused
 List 2-4 specific things about this equation that commonly trip up learners. For each:
@@ -1042,14 +1059,20 @@ function renderEquationSection(heading, body) {
   const h = heading.toLowerCase();
   if (heading.includes('🎯') || h.includes('plain english') || h.includes('what this equation'))
     return renderEqHeroSection(heading, body);
+  if (heading.includes('📊') || h.includes('difficulty') || h.includes('prerequisite'))
+    return renderEqDifficultySection(heading, body);
   if (heading.includes('🔤') || h.includes('every symbol') || h.includes('symbol decoded'))
     return renderEqSymbolSection(heading, body);
   if (heading.includes('🧠') || h.includes('intuition'))
     return renderEqIntuitionSection(heading, body);
-  if (heading.includes('🌍') || h.includes('where you') || h.includes('real-world'))
-    return renderEqApplicationsSection(heading, body);
   if (heading.includes('📐') || h.includes('step-by-step') || h.includes('how it works'))
     return renderEqStepsSection(heading, body);
+  if (heading.includes('🔢') || h.includes('worked example'))
+    return renderEqWorkedExampleSection(heading, body);
+  if (heading.includes('🌍') || h.includes('where you') || h.includes('real-world'))
+    return renderEqApplicationsSection(heading, body);
+  if (heading.includes('🔗') || h.includes('related equation'))
+    return renderEqRelatedSection(heading, body);
   if (heading.includes('⚠️') || h.includes('confused') || h.includes('confusion'))
     return renderConfusionSection(heading, body);
   if (heading.includes('🗺️') || h.includes('roadmap'))
@@ -1066,6 +1089,48 @@ function renderEqHeroSection(heading, body) {
         <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
       <div class="exp-hero-text">${renderMarkdown(body)}</div>
+    </div>`;
+}
+
+function renderEqDifficultySection(heading, body) {
+  const lower = body.toLowerCase();
+  let badgeClass = 'beginner', badgeIcon = '🟢', badgeText = 'Beginner';
+  if (lower.includes('advanced'))     { badgeClass = 'advanced';     badgeIcon = '🔴'; badgeText = 'Advanced'; }
+  else if (lower.includes('intermediate')) { badgeClass = 'intermediate'; badgeIcon = '🟡'; badgeText = 'Intermediate'; }
+
+  const lines = body.split('\n').filter(l => l.trim());
+  const prereqs = [];
+  for (const line of lines) {
+    const t = line.trim();
+    if (/^(beginner|intermediate|advanced)[:\s]/i.test(t)) continue;
+    const boldMatch = t.match(/^\*\*([^*]+)\*\*[:\s]+(.+)$/);
+    if (boldMatch) { prereqs.push({ term: boldMatch[1].trim(), desc: boldMatch[2].trim() }); continue; }
+    const bulletMatch = t.match(/^[-*]\s+(.+)$/);
+    if (bulletMatch) { prereqs.push({ term: null, desc: bulletMatch[1] }); continue; }
+    const numMatch = t.match(/^\d+\.\s+(.+)$/);
+    if (numMatch) prereqs.push({ term: null, desc: numMatch[1] });
+  }
+
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
+  return `
+    <div class="exp-section exp-section--difficulty eq-difficulty">
+      <div class="exp-section-header">
+        <span class="exp-section-icon">📊</span>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
+      </div>
+      <div class="difficulty-row">
+        <span class="difficulty-label">Difficulty:</span>
+        <span class="difficulty-badge difficulty-badge--${badgeClass}">${badgeIcon} ${badgeText}</span>
+      </div>
+      ${prereqs.length > 0 ? `
+        <span class="prereq-title">Math you'll need</span>
+        <ul class="prereq-list">
+          ${prereqs.map(p => `
+            <li class="prereq-item">
+              <span class="prereq-dot" style="background:#6366F1;"></span>
+              <span>${p.term ? `<strong>${escapeHtml(p.term)}:</strong> ` : ''}${eqInlineFormat(escapeHtml(p.desc))}</span>
+            </li>`).join('')}
+        </ul>` : renderMarkdown(body)}
     </div>`;
 }
 
@@ -1088,9 +1153,15 @@ function renderEqSymbolSection(heading, body) {
       }
       const analogyRx = /(Think of it like[\s\S]*)/i;
       const am = content.match(analogyRx);
-      symbols.push(am
-        ? { sym, def: content.replace(am[1], '').trim(), analogy: am[1].trim() }
-        : { sym, def: content, analogy: null });
+      // Try to split out units
+      const unitRx = /(?:Units?|Type)[:\s]+([^.]+\.)/i;
+      const um = content.match(unitRx);
+      symbols.push({
+        sym,
+        def: am ? content.replace(am[1], '').trim() : content,
+        analogy: am ? am[1].trim() : null,
+        unit: um ? um[1].trim() : null
+      });
     } else { i++; }
   }
   if (symbols.length === 0) return renderDefaultSection(heading, body);
@@ -1105,8 +1176,11 @@ function renderEqSymbolSection(heading, body) {
         ${symbols.map(s => `
           <div class="eq-symbol-card">
             <div class="eq-symbol-glyph">${escapeHtml(s.sym)}</div>
-            <div class="eq-symbol-def">${inlineFormat(escapeHtml(s.def))}</div>
-            ${s.analogy ? `<div class="concept-analogy">${inlineFormat(escapeHtml(s.analogy))}</div>` : ''}
+            <div class="eq-symbol-body">
+              <div class="eq-symbol-def">${eqInlineFormat(escapeHtml(s.def))}</div>
+              ${s.unit ? `<div class="eq-symbol-unit"><span class="eq-unit-label">Units:</span> ${escapeHtml(s.unit)}</div>` : ''}
+              ${s.analogy ? `<div class="concept-analogy">${eqInlineFormat(escapeHtml(s.analogy))}</div>` : ''}
+            </div>
           </div>`).join('')}
       </div>
     </div>`;
@@ -1114,13 +1188,108 @@ function renderEqSymbolSection(heading, body) {
 
 function renderEqIntuitionSection(heading, body) {
   const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
+  // Extract the "Think of it like..." summary if present
+  const analogyRx = /(Think of it like[^.]*\.(?:[^.]*\.)?)/i;
+  const am = body.match(analogyRx);
+  const mainText = am ? body.replace(am[1], '').trim() : body;
+  const analogy = am ? am[1].trim() : null;
   return `
     <div class="exp-section exp-section--narrative eq-intuition">
       <div class="exp-section-header">
         <span class="exp-section-icon">🧠</span>
         <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
-      <div class="narrative-body eq-intuition-body">${renderMarkdown(body)}</div>
+      <div class="narrative-body eq-intuition-body">${renderMarkdown(mainText)}</div>
+      ${analogy ? `<div class="eq-analogy-callout">
+        <span class="eq-analogy-icon">💡</span>
+        <div class="eq-analogy-text">${eqInlineFormat(escapeHtml(analogy))}</div>
+      </div>` : ''}
+    </div>`;
+}
+
+function renderEqStepsSection(heading, body) {
+  const steps = [];
+  body.split('\n').forEach(line => {
+    const t = line.trim();
+    if (!t) return;
+    const nm = t.match(/^\d+\.\s+(.+)$/); if (nm) { steps.push(nm[1]); return; }
+    const bm = t.match(/^[-*]\s+(.+)$/); if (bm) { steps.push(bm[1]); return; }
+    if (steps.length > 0) steps[steps.length - 1] += ' ' + t;
+    else steps.push(t);
+  });
+  if (steps.length === 0) return renderDefaultSection(heading, body);
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
+  return `
+    <div class="exp-section exp-section--derivation eq-steps">
+      <div class="exp-section-header">
+        <span class="exp-section-icon">📐</span>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
+      </div>
+      <ol class="eq-derivation-steps">
+        ${steps.map((step, idx) => `
+          <li class="eq-derivation-step">
+            <div class="eq-step-num">${idx + 1}</div>
+            <div class="eq-step-content">${eqInlineFormat(escapeHtml(step))}</div>
+          </li>`).join('')}
+      </ol>
+    </div>`;
+}
+
+function renderEqWorkedExampleSection(heading, body) {
+  const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
+  // Parse numbered steps if available
+  const steps = [];
+  const lines = body.split('\n');
+  let i = 0;
+  while (i < lines.length) {
+    const t = lines[i].trim();
+    if (!t) { i++; continue; }
+    const nm = t.match(/^\d+\.\s+(.+)$/);
+    if (nm) {
+      let content = nm[1];
+      i++;
+      // Collect continuation lines
+      while (i < lines.length) {
+        const next = lines[i].trim();
+        if (!next || /^\d+\.\s+/.test(next)) break;
+        content += '\n' + next;
+        i++;
+      }
+      steps.push(content);
+    } else {
+      // Non-numbered line — treat as prose
+      if (steps.length > 0) {
+        steps[steps.length - 1] += '\n' + t;
+      } else {
+        steps.push(t);
+      }
+      i++;
+    }
+  }
+
+  if (steps.length === 0) {
+    return `
+      <div class="exp-section exp-section--worked-example eq-worked">
+        <div class="exp-section-header">
+          <span class="exp-section-icon">🔢</span>
+          <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
+        </div>
+        <div class="eq-worked-body">${renderMarkdown(body)}</div>
+      </div>`;
+  }
+  return `
+    <div class="exp-section exp-section--worked-example eq-worked">
+      <div class="exp-section-header">
+        <span class="exp-section-icon">🔢</span>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
+      </div>
+      <div class="eq-worked-steps">
+        ${steps.map((step, idx) => `
+          <div class="eq-worked-step">
+            <div class="eq-worked-num"><span>${idx + 1}</span></div>
+            <div class="eq-worked-content">${eqInlineFormat(escapeHtml(step))}</div>
+          </div>`).join('')}
+      </div>
     </div>`;
 }
 
@@ -1142,47 +1311,89 @@ function renderEqApplicationsSection(heading, body) {
   }
   if (apps.length === 0) return renderDefaultSection(heading, body);
   const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
+  const domainIcons = {
+    'physics': '⚛️', 'machine learning': '🤖', 'deep learning': '🤖', 'ml': '🤖',
+    'finance': '💰', 'economics': '📈', 'biology': '🧬', 'chemistry': '🧪',
+    'engineering': '⚙️', 'statistics': '📊', 'computer science': '💻', 'ai': '🤖',
+    'signal processing': '📡', 'control': '🎛️', 'optimization': '📐',
+    'natural language': '💬', 'nlp': '💬', 'image': '🖼️', 'computer vision': '👁️',
+    'robotics': '🦾', 'reinforcement learning': '🎮', 'rl': '🎮',
+    'neural network': '🧠', 'data science': '📊', 'quantum': '⚛️',
+    'information theory': '📡', 'probability': '🎲', 'crypto': '🔐'
+  };
+  function getDomainIcon(domain) {
+    if (!domain) return '🌐';
+    const d = domain.toLowerCase();
+    for (const [key, icon] of Object.entries(domainIcons)) {
+      if (d.includes(key)) return icon;
+    }
+    return '🌐';
+  }
   return `
-    <div class="exp-section exp-section--tips eq-applications">
+    <div class="exp-section exp-section--applications eq-applications">
       <div class="exp-section-header">
         <span class="exp-section-icon">🌍</span>
         <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
-      <div class="tips-grid">
+      <div class="eq-app-grid">
         ${apps.map(a => `
-          <div class="tip-card eq-app-card">
-            ${a.domain ? `<strong>${escapeHtml(a.domain)}:</strong> ` : ''}${inlineFormat(escapeHtml(a.desc))}
+          <div class="eq-app-card">
+            <span class="eq-app-icon">${getDomainIcon(a.domain)}</span>
+            <div class="eq-app-body">
+              ${a.domain ? `<strong class="eq-app-domain">${escapeHtml(a.domain)}</strong>` : ''}
+              <span class="eq-app-desc">${eqInlineFormat(escapeHtml(a.desc))}</span>
+            </div>
           </div>`).join('')}
       </div>
     </div>`;
 }
 
-function renderEqStepsSection(heading, body) {
-  const steps = [];
-  body.split('\n').forEach(line => {
-    const t = line.trim();
-    if (!t) return;
-    const nm = t.match(/^\d+\.\s+(.+)$/); if (nm) { steps.push(nm[1]); return; }
-    const bm = t.match(/^[-*]\s+(.+)$/); if (bm) { steps.push(bm[1]); return; }
-    if (steps.length > 0) steps[steps.length - 1] += ' ' + t;
-    else steps.push(t);
-  });
-  if (steps.length === 0) return renderDefaultSection(heading, body);
+function renderEqRelatedSection(heading, body) {
+  const lines = body.split('\n');
+  const related = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    if (!line) { i++; continue; }
+    const match = line.match(/^\*\*([^*]+)\*\*[:\s]+(.*)$/);
+    if (match) {
+      let content = match[2].trim();
+      i++;
+      while (i < lines.length) {
+        const next = lines[i].trim();
+        if (!next || /^\*\*/.test(next)) break;
+        content += ' ' + next; i++;
+      }
+      related.push({ eq: match[1].trim(), desc: content });
+    } else {
+      const bm = line.match(/^[-*\d.]+\s+(.+)$/);
+      if (bm) related.push({ eq: null, desc: bm[1] });
+      i++;
+    }
+  }
+  if (related.length === 0) return renderDefaultSection(heading, body);
   const clean = heading.replace(/^[\p{Emoji}\s#*]+/u, '').replace(/[\s*#]+$/, '').trim() || heading;
   return `
-    <div class="exp-section exp-section--roadmap eq-steps">
+    <div class="exp-section exp-section--related eq-related">
       <div class="exp-section-header">
-        <span class="exp-section-icon">📐</span>
+        <span class="exp-section-icon">🔗</span>
         <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
-      <ol class="roadmap-steps">
-        ${steps.map((step, idx) => `
-          <li class="roadmap-step eq-step">
-            <div class="roadmap-num">${idx + 1}</div>
-            <div class="roadmap-content">${inlineFormat(escapeHtml(step))}</div>
-          </li>`).join('')}
-      </ol>
+      <div class="eq-related-list">
+        ${related.map(r => `
+          <div class="eq-related-card">
+            ${r.eq ? `<div class="eq-related-formula">${escapeHtml(r.eq)}</div>` : ''}
+            <div class="eq-related-desc">${eqInlineFormat(escapeHtml(r.desc))}</div>
+          </div>`).join('')}
+      </div>
     </div>`;
+}
+
+// Equation-specific inline formatting (no line references)
+function eqInlineFormat(html) {
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  return html;
 }
 
 function exportEquation(format) {
