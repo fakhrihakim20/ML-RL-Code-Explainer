@@ -1192,8 +1192,9 @@ function renderEqSymbolSection(heading, body) {
       i++;
       while (i < lines.length) {
         const next = lines[i].trim();
-        if (!next || /^\*\*/.test(next)) break;
-        content += ' ' + next; i++;
+        if (/^\*\*/.test(next)) break;
+        if (next) content += (content ? '\n' : '') + next;
+        i++;
       }
       const analogyRx = /(Think of it like[\s\S]*)/i;
       const am = content.match(analogyRx);
@@ -1295,8 +1296,8 @@ function renderEqWorkedExampleSection(heading, body) {
       // Collect continuation lines
       while (i < lines.length) {
         const next = lines[i].trim();
-        if (!next || /^\d+\.\s+/.test(next)) break;
-        content += '\n' + next;
+        if (/^\d+\.\s+/.test(next)) break;
+        if (next) content += '\n' + next;
         i++;
       }
       steps.push(content);
@@ -1405,8 +1406,9 @@ function renderEqRelatedSection(heading, body) {
       i++;
       while (i < lines.length) {
         const next = lines[i].trim();
-        if (!next || /^\*\*/.test(next)) break;
-        content += ' ' + next; i++;
+        if (/^\*\*/.test(next)) break;
+        if (next) content += (content ? '\n' : '') + next;
+        i++;
       }
       related.push({ eq: match[1].trim(), desc: content });
     } else {
@@ -1703,9 +1705,9 @@ function renderConceptSection(heading, body) {
       i++;
       while (i < rawLines.length) {
         const next = rawLines[i].trim();
-        if (!next || /^\*\*/.test(next) || /^[-*]\s/.test(next) || /^[^\*]+?\*\*[:\s]/.test(next)) break;
+        if (/^\*\*/.test(next) || /^[-*]\s/.test(next) || /^[^\*]+?\*\*[:\s]/.test(next)) break;
         if (/^#{1,6}[\s#]/.test(next) || next === '#') { i++; continue; }
-        content += ' ' + next;
+        if (next) content += (content ? '\n' : '') + next;
         i++;
       }
       // Split out "Think of it like..." as the analogy
@@ -1787,9 +1789,10 @@ function renderConfusionSection(heading, body) {
       i++;
       while (i < rawLines.length) {
         const next = rawLines[i].trim();
-        if (!next || /^\*\*/.test(next) || /^[-*]\s/.test(next) || /^[^\*]+?\*\*[:\s]/.test(next)) break;
+        if (/^\*\*/.test(next) || /^[-*]\s/.test(next) || /^[^\*]+?\*\*[:\s]/.test(next)) break;
         if (/^#{1,6}[\s#]/.test(next) || next === '#') { i++; continue; }
-        content += ' ' + next; i++;
+        if (next) content += (content ? '\n' : '') + next;
+        i++;
       }
       items.push({ trigger, content });
     } else {
