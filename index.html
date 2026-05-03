@@ -3,10 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ML Code Explainer - Paste your Python ML/RL code and get beginner-friendly explanations with visual flowcharts and concept maps.">
-  <title>ML Code Explainer</title>
+  <meta name="description" content="Researcher Tutor — Explain ML/RL code and math equations like a world-class professor. Beginner-friendly, visual, and interactive.">
+  <title>Researcher Tutor</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="output-styles.css">
+  <!-- KaTeX for equation rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script>
@@ -28,8 +32,8 @@
     <!-- Header -->
     <header class="app-header">
       <div class="brand">
-        <span class="brand-name">ML Code Explainer</span>
-        <span class="brand-tag">for beginners</span>
+        <span class="brand-name">Researcher Tutor</span>
+        <span class="brand-tag">All-in-one · Code &amp; Equations</span>
       </div>
       <div class="header-actions">
         <button class="header-setup-btn" id="setup-toggle-btn">
@@ -124,21 +128,91 @@
 
     <!-- Two-Column Body -->
     <div class="app-body">
-      <!-- Left Column: Code Input -->
+      <!-- Left Column: Input -->
       <div class="left-col">
-        <h2 class="input-heading">Your code, explained.</h2>
-        <p class="input-subhead">Paste any Python ML or RL code below.</p>
-        <textarea id="code-input" class="code-editor" placeholder="# Paste your Python ML code here
+        <!-- Mode Switcher -->
+        <div class="input-mode-tabs">
+          <button class="input-mode-tab active" id="mode-tab-code" data-mode="code">⌨️ Code</button>
+          <button class="input-mode-tab" id="mode-tab-equation" data-mode="equation">∑ Equation</button>
+        </div>
 
-import torch
-import torch.nn as nn
+        <!-- Code Mode -->
+        <div id="input-panel-code" class="input-panel active">
+          <h2 class="input-heading">Your code, explained.</h2>
+          <p class="input-subhead">Paste any Python ML or RL code below.</p>
+          <div class="code-editor-wrap" id="code-editor-wrap">
+            <div class="line-nums" id="line-nums"><div class="ln-num">1</div></div>
+            <textarea id="code-input" class="code-editor" placeholder="# Paste your Python ML code here&#10;&#10;import torch&#10;import torch.nn as nn&#10;&#10;class Policy(nn.Module):&#10;    ..." spellcheck="false"></textarea>
+          </div>
+          <div class="action-row">
+            <button class="btn-primary" id="btn-explain">Explain</button>
+            <button class="btn-outline" id="btn-visualize">Visualize</button>
+            <button class="btn-ghost" id="btn-clear">Clear</button>
+          </div>
+        </div>
 
-class Policy(nn.Module):
-    ..." spellcheck="false"></textarea>
-        <div class="action-row">
-          <button class="btn-primary" id="btn-explain">Explain</button>
-          <button class="btn-outline" id="btn-visualize">Visualize</button>
-          <button class="btn-ghost" id="btn-clear">Clear</button>
+        <!-- Equation Mode -->
+        <div id="input-panel-equation" class="input-panel" style="display:none;">
+          <h2 class="input-heading">Your equation, decoded.</h2>
+          <p class="input-subhead">Type, upload, or paste a screenshot — LaTeX, plain text, or image.</p>
+
+          <!-- Input method tabs -->
+          <div class="eq-input-tabs">
+            <button class="eq-input-tab active" id="eq-tab-type" data-eqmode="type">✏️ Type</button>
+            <button class="eq-input-tab" id="eq-tab-image" data-eqmode="image">🖼️ Image</button>
+          </div>
+
+          <!-- Type sub-panel -->
+          <div id="eq-panel-type" class="eq-subpanel">
+            <textarea id="equation-input" class="code-editor equation-editor" placeholder="Examples:&#10;  E = mc²&#10;  J(θ) = -E[log π(a|s) · Q(s,a)]&#10;  ∂L/∂w = -2·Σ(y - ŷ)·x&#10;  softmax(x_i) = e^x_i / Σe^x_j" spellcheck="false"></textarea>
+            <!-- Live Preview -->
+            <div id="equation-preview" class="equation-preview" style="display:none;">
+              <span class="eq-preview-label">Preview</span>
+              <div id="equation-preview-render"></div>
+            </div>
+          </div>
+
+          <!-- Image sub-panel -->
+          <div id="eq-panel-image" class="eq-subpanel" style="display:none;">
+            <!-- Drop zone -->
+            <div class="eq-drop-zone" id="eq-drop-zone">
+              <input type="file" id="eq-file-input" accept="image/*" style="display:none;">
+              <div class="eq-drop-idle" id="eq-drop-idle">
+                <div class="eq-drop-icon">🖼️</div>
+                <p class="eq-drop-title">Drop an image here</p>
+                <p class="eq-drop-hint">or</p>
+                <div class="eq-drop-btns">
+                  <button class="eq-drop-btn" id="eq-btn-browse">📁 Browse file</button>
+                  <button class="eq-drop-btn" id="eq-btn-paste-img">📋 Paste (Ctrl+V)</button>
+                </div>
+                <p class="eq-drop-hint" style="margin-top:10px;">Supports JPG, PNG, WebP, GIF · Max 10 MB</p>
+              </div>
+            </div>
+            <!-- Image preview -->
+            <div class="eq-img-preview" id="eq-img-preview" style="display:none;">
+              <div class="eq-img-preview-header">
+                <span class="eq-img-preview-label">📸 Image attached</span>
+                <button class="eq-img-remove" id="eq-img-remove" title="Remove image">✕ Remove</button>
+              </div>
+              <img id="eq-img-thumb" class="eq-img-thumb" src="" alt="Equation image preview">
+              <p class="eq-img-caption" id="eq-img-caption"></p>
+            </div>
+            <!-- Gemini-only note -->
+            <div class="eq-img-note" id="eq-img-note">
+              <span>📌</span>
+              <span>Image reading requires <strong>Gemini</strong> (the free default). Works best with clear, high-contrast photos or screenshots.</span>
+            </div>
+          </div>
+
+          <!-- Optional context for image mode -->
+          <div class="eq-context-row" id="eq-context-row" style="display:none;">
+            <input type="text" id="eq-context-input" class="eq-context-field" placeholder="Optional: add context or a specific question (e.g. 'This is from reinforcement learning')">
+          </div>
+
+          <div class="action-row" style="margin-top:14px;">
+            <button class="btn-primary" id="btn-explain-equation">Explain Equation</button>
+            <button class="btn-ghost" id="btn-clear-equation">Clear</button>
+          </div>
         </div>
       </div>
 
@@ -171,8 +245,9 @@ class Policy(nn.Module):
             <span class="results-badge" id="results-badge">Powered by: —</span>
           </div>
           <div class="result-tabs">
-            <button class="result-tab active" data-tab="explanation">📝 Explanation</button>
+            <button class="result-tab active" data-tab="explanation">📝 Code Explanation</button>
             <button class="result-tab" data-tab="visual">🎨 Visual</button>
+            <button class="result-tab" data-tab="equation">∑ Equation</button>
           </div>
 
           <!-- Explanation Tab -->
@@ -220,6 +295,15 @@ class Policy(nn.Module):
               <h4>📖 Plain English Walkthrough</h4>
               <div id="walkthrough-content"></div>
             </div>
+          </div>
+
+          <!-- Equation Tab -->
+          <div class="tab-content" id="tab-equation">
+            <div class="diagram-toolbar" id="toolbar-equation-export" style="display:none; justify-content: flex-end; margin-bottom: 16px;">
+              <button class="diagram-btn" onclick="exportEquation('md')">↓ Save MD</button>
+              <button class="diagram-btn" onclick="exportEquation('pdf')">↓ Save PDF</button>
+            </div>
+            <div class="explanation-content" id="equation-content"></div>
           </div>
         </section>
       </div>

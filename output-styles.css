@@ -424,18 +424,51 @@
 
 /* ─────────────────────────────────────────────────────────────
    7. TIPS — "💡 Beginner Tips"
-   Cyan accent. Tips as a card grid, each with a lightbulb.
+   Cyan accent. Tips as a clean vertical list, one tip per row.
    ───────────────────────────────────────────────────────────── */
 .exp-section--tips {
   border-left-color: #06B6D4;
 }
 
-.tips-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+/* Vertical list (replaces broken horizontal grid) */
+.tips-list {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
+.tip-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: #F0FDFA;
+  border: 1px solid #99F6E4;
+  border-radius: 10px;
+  padding: 13px 16px;
+}
+
+.tip-bulb {
+  font-size: 1.1rem;
+  line-height: 1.4;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.tip-body {
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: #134E4A;
+  flex: 1;
+  min-width: 0; /* prevent overflow */
+  word-break: break-word;
+}
+
+.tip-title {
+  color: #0E7490;
+  font-weight: 700;
+}
+
+/* Keep .tip-card for any legacy uses */
 .tip-card {
   background: #F0FDFA;
   border: 1px solid #99F6E4;
@@ -444,18 +477,15 @@
   font-size: 0.875rem;
   line-height: 1.65;
   color: #134E4A;
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
+  word-break: break-word;
 }
 
-.tip-card::before {
-  content: '💡';
-  flex-shrink: 0;
-  font-size: 1rem;
-  line-height: 1.4;
+[data-theme="dark"] .tip-item {
+  background: rgba(15,118,110,0.15);
+  border-color: rgba(13,148,132,0.3);
 }
-
+[data-theme="dark"] .tip-body { color: #99f6e4; }
+[data-theme="dark"] .tip-title { color: #22d3ee; }
 [data-theme="dark"] .tip-card {
   background: rgba(15,118,110,0.15);
   border-color: rgba(13,148,132,0.3);

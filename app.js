@@ -10,8 +10,12 @@ const STATE = {
   customModels: JSON.parse(localStorage.getItem('ml_custom_models') || '[]'),
   explanationData: null,
   visualData: null,
+  equationData: null,
+  equationImage: null,
+  equationInputMode: 'type',
   lastProvider: '',
   lastModel: '',
+  inputMode: 'code',
   zooms: { concept: 1, flowchart: 1 }
 };
 
@@ -27,6 +31,8 @@ const LOADING_MSGS = [
 ];
 
 const SYSTEM_PROMPT_EXPLAIN = `You are a world-class Python and Machine Learning professor. Your single most important job is making complex ideas feel obvious and exciting to a complete beginner — someone who has never written ML code before.
+
+LINE REFERENCE RULE (critical): The user's code will be sent with each line prefixed by its line number in the format 'L{n}: '. Whenever you discuss any specific part of the code — in ANY section — you MUST cite the exact line number(s) using this format: [Line N] or [Lines N-M]. Example: 'The class definition at [Lines 5-12] sets up the neural network.' This lets the reader jump directly to that part of their code.
 
 You follow the Feynman Technique strictly: if you cannot explain something with a real-world analogy a 12-year-old can picture, you do not move on until you can.
 
@@ -116,6 +122,46 @@ Write exactly 8-10 numbered steps. Each step is ONE simple sentence. Write it li
 Make the reader feel like they are watching the code run in real time, in slow motion.
 
 Return ONLY these three sections. Do not add any other commentary or headings.`;
+
+// ===== EQUATION SYSTEM PROMPT =====
+const SYSTEM_PROMPT_EQUATION = `You are a world-class mathematics professor and the best tutor in the world. Your superpower is making scary-looking equations feel obvious and exciting to a complete beginner.
+
+You follow the Feynman Technique strictly: if you cannot explain a symbol or concept with a real-world analogy a 12-year-old can picture, you do not move on until you can.
+
+TONE RULES (non-negotiable):
+- Never use jargon without immediately explaining it in plain English
+- Never say "simply" or "just"
+- Always be warm, patient, and encouraging
+- Use "you" and "your equation" to keep it personal
+- When something is hard, say so: "This part trips up a lot of people — here's why it makes sense"
+- For LaTeX notation, always explain what each symbol means in words FIRST before showing the math
+
+Respond in EXACTLY these sections with these exact headings:
+
+### 🎯 What This Equation Says (Plain English)
+In 2-3 plain sentences, explain what this equation is describing — as if explaining to someone at dinner who hates math. No symbols. No jargon. Just the idea.
+
+### 🔤 Every Symbol Decoded
+List every variable, operator, and symbol in the equation. For each one:
+  **[Symbol]:** What it represents in plain English. Then its units/type if applicable. Then "Think of it like..." analogy.
+Order from left to right as they appear in the equation.
+
+### 🧠 The Intuition Behind It
+Explain WHY this equation is true or useful. Not just what it computes, but the deep intuition. Use a real-world story or analogy. This should make the reader say "Oh, of COURSE it works that way!" Write this as a flowing narrative (3-5 sentences).
+
+### 🌍 Where You'll See This Equation
+List 3-5 real-world domains or problems where this equation is used. For each:
+  **[Domain/Use Case]:** One sentence explaining how this specific equation applies there.
+
+### 📐 Step-by-Step: How It Works
+Walk through what the equation DOES mathematically, step by step. Number each step. Each step is one plain sentence. If the equation is a formula, show how you'd evaluate it with a simple example (use tiny, friendly numbers). If it involves calculus or optimization, explain what "taking the derivative" or "minimizing" physically means in the context of this equation.
+
+### ⚠️ Where People Usually Get Confused
+List 2-4 specific things about this equation that commonly trip up learners. For each:
+  **[The confusing thing]:** Why it's confusing, then the "aha!" explanation that makes it click.
+
+### 🗺️ Your Learning Roadmap
+Based on this equation, give an ordered list of what to learn next to fully master it. Format: "1. Learn [topic] → because this equation uses [specific thing]". Maximum 5 items. End with one resource recommendation on a new line starting with "Resource:".`;
 
 const OR_MODELS = [
   { value: 'google/gemma-4-31b-it:free', label: 'Google Gemma 4 31B' },
@@ -244,7 +290,173 @@ function bindEvents() {
   $('#btn-explain').addEventListener('click', () => runExplain());
   $('#btn-visualize').addEventListener('click', () => runVisualize());
   $('#btn-clear').addEventListener('click', clearAll);
+  $('#btn-explain-equation').addEventListener('click', () => runExplainEquation());
+  $('#btn-clear-equation').addEventListener('click', clearEquation);
   $$('.result-tab').forEach(tab => tab.addEventListener('click', () => switchResultTab(tab.dataset.tab)));
+  // Input mode switcher (Code vs Equation)
+  $$('.input-mode-tab').forEach(tab => tab.addEventListener('click', () => switchInputMode(tab.dataset.mode)));
+  // Equation sub-mode switcher (Type vs Image)
+  $$('.eq-input-tab').forEach(tab => tab.addEventListener('click', () => switchEqInputMode(tab.dataset.eqmode)));
+  // Live equation text preview
+  $('#equation-input').addEventListener('input', debounce(updateEquationPreview, 600));
+  // Image upload wiring
+  $('#eq-btn-browse').addEventListener('click', () => $('#eq-file-input').click());
+  $('#eq-file-input').addEventListener('change', (e) => { if (e.target.files[0]) handleEquationImageFile(e.target.files[0]); });
+  // Line number gutter sync
+  const codeInput = $('#code-input');
+  if (codeInput) {
+    codeInput.addEventListener('input',  () => syncLineNumbers());
+    codeInput.addEventListener('scroll', () => syncLineNumbers());
+    codeInput.addEventListener('keyup',  () => syncLineNumbers());
+    codeInput.addEventListener('paste',  () => setTimeout(syncLineNumbers, 0));
+    syncLineNumbers();
+  }
+  $('#eq-btn-paste-img').addEventListener('click', () => triggerPasteImage());
+  $('#eq-img-remove').addEventListener('click', clearEquationImage);
+  // Drag & drop
+  const dz = $('#eq-drop-zone');
+  dz.addEventListener('dragover',  (e) => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', ()  => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop',      (e) => { e.preventDefault(); dz.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) handleEquationImageFile(f); });
+  // Global paste listener (images)
+  document.addEventListener('paste', handleGlobalPaste);
+}
+
+function handleGlobalPaste(e) {
+  // Only intercept if we are in equation-image mode and the clipboard has an image
+  if (STATE.inputMode !== 'equation' || STATE.equationInputMode !== 'image') return;
+  const items = Array.from(e.clipboardData?.items || []);
+  const imgItem = items.find(i => i.type.startsWith('image/'));
+  if (!imgItem) return;
+  e.preventDefault();
+  const file = imgItem.getAsFile();
+  if (file) handleEquationImageFile(file);
+}
+
+function triggerPasteImage() {
+  // Try to read image from clipboard via Clipboard API
+  if (!navigator.clipboard?.read) {
+    showToast('Press Ctrl+V anywhere on the page to paste an image.');
+    return;
+  }
+  navigator.clipboard.read().then(items => {
+    for (const item of items) {
+      const imgType = item.types.find(t => t.startsWith('image/'));
+      if (imgType) {
+        item.getType(imgType).then(blob => handleEquationImageFile(new File([blob], 'pasted.png', { type: imgType })));
+        return;
+      }
+    }
+    showToast('No image found in clipboard. Copy an image first, then paste.');
+  }).catch(() => {
+    showToast('Press Ctrl+V anywhere on the page to paste an image.');
+  });
+}
+
+function handleEquationImageFile(file) {
+  if (!file.type.startsWith('image/')) { showToast('Please upload an image file (JPG, PNG, WebP, GIF).'); return; }
+  if (file.size > 10 * 1024 * 1024) { showToast('Image is too large. Please use an image under 10 MB.'); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target.result;
+    const base64 = dataUrl.split(',')[1];
+    const mimeType = file.type;
+    STATE.equationImage = { data: base64, mimeType, name: file.name, dataUrl };
+    // Show preview
+    $('#eq-drop-zone').style.display = 'none';
+    const preview = $('#eq-img-preview');
+    preview.style.display = 'block';
+    $('#eq-img-thumb').src = dataUrl;
+    $('#eq-img-caption').textContent = `${file.name} · ${(file.size / 1024).toFixed(0)} KB`;
+    // Show context row
+    $('#eq-context-row').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearEquationImage() {
+  STATE.equationImage = null;
+  $('#eq-img-preview').style.display = 'none';
+  $('#eq-drop-zone').style.display = 'block';
+  $('#eq-img-thumb').src = '';
+  $('#eq-file-input').value = '';
+  $('#eq-context-row').style.display = 'none';
+}
+
+function switchEqInputMode(mode) {
+  STATE.equationInputMode = mode;
+  $$('.eq-input-tab').forEach(t => t.classList.toggle('active', t.dataset.eqmode === mode));
+  $('#eq-panel-type').style.display = mode === 'type' ? 'block' : 'none';
+  $('#eq-panel-image').style.display = mode === 'image' ? 'block' : 'none';
+  if (mode === 'image') {
+    $('#eq-context-row').style.display = STATE.equationImage ? 'block' : 'none';
+  } else {
+    $('#eq-context-row').style.display = 'none';
+  }
+}
+
+function showToast(msg) {
+  let t = document.getElementById('eq-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'eq-toast';
+    t.className = 'eq-toast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.classList.add('visible');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('visible'), 3500);
+}
+
+function switchInputMode(mode) {
+  STATE.inputMode = mode;
+  $$('.input-mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+  $('#input-panel-code').style.display = mode === 'code' ? 'block' : 'none';
+  $('#input-panel-equation').style.display = mode === 'equation' ? 'block' : 'none';
+  // Update placeholder
+  const ph = $('#results-placeholder');
+  if (ph) {
+    if (mode === 'equation') {
+      ph.querySelector('h3').textContent = 'No equation yet';
+      ph.querySelector('p').innerHTML = 'Switch to the <strong>∑ Equation</strong> tab on the left, type or upload an equation, then click <strong>Explain Equation</strong>.';
+    } else {
+      ph.querySelector('h3').textContent = 'No code yet';
+      ph.querySelector('p').innerHTML = 'Paste your Python ML or RL code on the left, then click <strong>Explain</strong> or <strong>Visualize</strong> to begin.';
+    }
+  }
+}
+
+function debounce(fn, ms) {
+  let timer;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
+}
+
+function updateEquationPreview() {
+  const val = $('#equation-input').value.trim();
+  const previewWrap = $('#equation-preview');
+  const previewEl = $('#equation-preview-render');
+  if (!val) { previewWrap.style.display = 'none'; return; }
+  previewWrap.style.display = 'block';
+  // Wrap in display math delimiters if no delimiters present
+  let toRender = val;
+  if (!val.includes('$') && !val.includes('\\(') && !val.includes('\\[')) {
+    toRender = `$$${val}$$`;
+  }
+  previewEl.innerHTML = toRender;
+  if (window.renderMathInElement) {
+    try {
+      renderMathInElement(previewEl, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false },
+          { left: '\\(', right: '\\)', display: false },
+          { left: '\\[', right: '\\]', display: true }
+        ],
+        throwOnError: false
+      });
+    } catch(e) { /* silently ignore parse errors */ }
+  }
 }
 
 // ===== PROVIDER =====
@@ -533,7 +745,7 @@ async function runExplain() {
   if (!code.trim()) return showError(friendlyError('paste some Python code'));
   showLoading(true); hideError(); hideResults(); setButtonsDisabled(true);
   try {
-    const text = await callAPI(SYSTEM_PROMPT_EXPLAIN, code);
+    const text = await callAPI(SYSTEM_PROMPT_EXPLAIN, addLineNumbers(code));
     STATE.explanationData = text;
     STATE.lastProvider = getProviderLabel();
     STATE.lastModel = getModelLabel();
@@ -553,7 +765,7 @@ async function runVisualize() {
   if (!code.trim()) return showError(friendlyError('paste some Python code'));
   showLoading(true); hideError(); hideResults(); setButtonsDisabled(true);
   try {
-    const text = await callAPI(SYSTEM_PROMPT_VISUAL, code);
+    const text = await callAPI(SYSTEM_PROMPT_VISUAL, addLineNumbers(code));
     STATE.visualData = text;
     STATE.lastProvider = getProviderLabel();
     STATE.lastModel = getModelLabel();
@@ -564,6 +776,370 @@ async function runVisualize() {
     showError(friendlyError(e.message));
   } finally {
     showLoading(false); setButtonsDisabled(false);
+  }
+}
+
+// ===== LINE NUMBER GUTTER =====
+function addLineNumbers(code) {
+  return code.split('\n').map((line, i) => `L${i + 1}: ${line}`).join('\n');
+}
+
+function syncLineNumbers() {
+  const ta = $('#code-input');
+  const ln = $('#line-nums');
+  if (!ta || !ln) return;
+  const count = ta.value.split('\n').length;
+  if (ln._lastCount !== count) {
+    ln._lastCount = count;
+    ln.innerHTML = Array.from({ length: count }, (_, i) =>
+      `<div class="ln-num" id="ln-${i + 1}">${i + 1}</div>`
+    ).join('');
+  }
+  ln.scrollTop = ta.scrollTop;
+}
+
+function jumpToLine(lineNum) {
+  const ta = $('#code-input');
+  if (!ta) return;
+  const lines = ta.value.split('\n');
+  if (lineNum > lines.length) return;
+  const startPos = lines.slice(0, lineNum - 1).join('\n').length + (lineNum > 1 ? 1 : 0);
+  const endPos   = startPos + lines[lineNum - 1].length;
+  ta.focus();
+  ta.setSelectionRange(startPos, endPos);
+  const lineH = parseFloat(getComputedStyle(ta).lineHeight) || 22;
+  ta.scrollTop = Math.max(0, (lineNum - 4) * lineH);
+  syncLineNumbers();
+  flashGutterLines(lineNum, lineNum);
+}
+
+function jumpToLines(start, end) {
+  const ta = $('#code-input');
+  if (!ta) return;
+  const lines = ta.value.split('\n');
+  const clampEnd = Math.min(end, lines.length);
+  const startPos = lines.slice(0, start - 1).join('\n').length + (start > 1 ? 1 : 0);
+  const endPos   = lines.slice(0, clampEnd).join('\n').length;
+  ta.focus();
+  ta.setSelectionRange(startPos, Math.min(endPos, ta.value.length));
+  const lineH = parseFloat(getComputedStyle(ta).lineHeight) || 22;
+  ta.scrollTop = Math.max(0, (start - 4) * lineH);
+  syncLineNumbers();
+  flashGutterLines(start, clampEnd);
+}
+
+function flashGutterLines(start, end) {
+  for (let i = start; i <= end; i++) {
+    const el = document.getElementById(`ln-${i}`);
+    if (el) {
+      el.classList.add('ln-active');
+      setTimeout(() => el.classList.remove('ln-active'), 1600);
+    }
+  }
+}
+
+// ===== EQUATION EXPLAIN =====
+async function runExplainEquation() {
+  saveToken();
+  const isImageMode = STATE.equationInputMode === 'image';
+  const hasImage = !!STATE.equationImage;
+  const eqText = $('#equation-input').value.trim();
+  const contextText = $('#eq-context-input')?.value.trim() || '';
+
+  if (!isImageMode && !eqText) return showError('📋 Please type an equation first, or switch to Image mode to upload one.');
+  if (isImageMode && !hasImage) return showError('🖼️ Please upload or paste an image of the equation first.');
+
+  showLoading(true); hideError(); hideResults(); setButtonsDisabledAll(true);
+  try {
+    let text;
+    if (hasImage) {
+      // Multimodal path — image (+ optional text context)
+      if (STATE.provider !== 'gemini') {
+        throw new Error('Image input is only supported with the Gemini provider. Please switch to Gemini in API Setup.');
+      }
+      const token = getToken();
+      if (!token) throw new Error('No API token found. Please save your Gemini token in the Setup section.');
+      const contextPart = contextText ? `\n\nAdditional context from the user: ${contextText}` : '';
+      const eqPart = eqText ? `\n\nThe user also typed this equation or note: ${eqText}` : '';
+      const userMsg = `Please explain the equation shown in this image in full detail.${eqPart}${contextPart}`;
+      text = await callGeminiWithImage(token, SYSTEM_PROMPT_EQUATION, userMsg, STATE.equationImage);
+    } else {
+      // Text-only path
+      const userMsg = `Please explain the following equation in full detail:\n\n${eqText}${contextText ? '\n\nContext: ' + contextText : ''}`;
+      text = await callAPI(SYSTEM_PROMPT_EQUATION, userMsg);
+    }
+    STATE.equationData = text;
+    STATE.lastProvider = getProviderLabel();
+    STATE.lastModel = getModelLabel();
+    const displayEq = eqText || (hasImage ? null : '');
+    renderEquationExplanation(text, displayEq, hasImage ? STATE.equationImage.dataUrl : null);
+    showResults();
+    switchResultTab('equation');
+  } catch (e) {
+    showError(friendlyError(e.message));
+  } finally {
+    showLoading(false); setButtonsDisabledAll(false);
+  }
+}
+
+async function callGeminiWithImage(token, systemPrompt, userText, imageObj) {
+  const model = STATE.geminiModel || 'gemini-2.5-flash';
+  console.log('[Gemini Multimodal] Calling model:', model);
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${token}`;
+  const res = await fetchWithRetry(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{
+        role: 'user',
+        parts: [
+          { text: userText },
+          { inlineData: { mimeType: imageObj.mimeType, data: imageObj.data } }
+        ]
+      }],
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      generationConfig: { temperature: 0.4, maxOutputTokens: 8192 }
+    })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Google Gemini: ${data?.error?.message || 'API error: ' + res.status}`);
+  if (data.candidates?.length > 0) {
+    const parts = data.candidates[0].content?.parts;
+    if (parts?.length > 0) return parts[0].text || '';
+    if (data.candidates[0].finishReason === 'SAFETY')
+      throw new Error('content_filter: The model blocked this content for safety reasons.');
+  }
+  throw new Error('Unexpected response format from Gemini');
+}
+
+function clearEquation() {
+  $('#equation-input').value = '';
+  $('#equation-preview').style.display = 'none';
+  if ($('#eq-context-input')) $('#eq-context-input').value = '';
+  clearEquationImage();
+  hideResults(); hideError();
+  STATE.equationData = null;
+  $('#results-placeholder')?.classList.remove('hidden');
+}
+
+function renderEquationExplanation(text, originalEq, imageDataUrl) {
+  const container = $('#equation-content');
+  // Render the original equation / image at the top
+  let headerHtml = '';
+  if (imageDataUrl) {
+    headerHtml = `<div class="eq-source-card eq-source-card--image">
+      <span class="eq-source-label">Your Equation (from image)</span>
+      <img src="${imageDataUrl}" class="eq-source-image" alt="Equation image">
+    </div>`;
+  }
+  if (originalEq) {
+    let rendered = originalEq;
+    if (!originalEq.includes('$') && !originalEq.includes('\\(')) rendered = `$$${originalEq}$$`;
+    headerHtml = `<div class="eq-source-card"><span class="eq-source-label">Your Equation</span><div class="eq-source-render" id="eq-source-render">${escapeHtml(rendered)}</div></div>`;
+  }
+
+  const sections = text.split(/(?=###\s)/).filter(s => s.trim());
+  let html = '';
+  sections.forEach(section => {
+    const lines = section.trim().split('\n');
+    const rawHeading = lines[0].replace(/^#+\s*/, '');
+    const body = lines.slice(1).join('\n').trim();
+    html += renderEquationSection(rawHeading, body);
+  });
+  if (!html) html = `<div class="exp-section exp-section--default">${renderMarkdown(text)}</div>`;
+  container.innerHTML = headerHtml + html;
+
+  // Render KaTeX in the equation source card
+  const srcEl = document.getElementById('eq-source-render');
+  if (srcEl && window.renderMathInElement) {
+    srcEl.textContent = srcEl.textContent; // reset from escapeHtml
+    srcEl.innerHTML = originalEq.includes('$') ? escapeHtml(originalEq) : `$$${escapeHtml(originalEq)}$$`;
+    try { renderMathInElement(srcEl, { delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }], throwOnError: false }); } catch(e) {}
+  }
+
+  // Render KaTeX throughout the explanation
+  if (window.renderMathInElement) {
+    try {
+      renderMathInElement(container, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false },
+          { left: '\\(', right: '\\)', display: false },
+          { left: '\\[', right: '\\]', display: true }
+        ],
+        throwOnError: false
+      });
+    } catch(e) {}
+  }
+
+  const toolbar = $('#toolbar-equation-export');
+  if (toolbar) toolbar.style.display = 'flex';
+}
+
+function renderEquationSection(heading, body) {
+  const h = heading.toLowerCase();
+  if (heading.includes('🎯') || h.includes('plain english') || h.includes('what this equation'))
+    return renderEqHeroSection(heading, body);
+  if (heading.includes('🔤') || h.includes('every symbol') || h.includes('symbol decoded'))
+    return renderEqSymbolSection(heading, body);
+  if (heading.includes('🧠') || h.includes('intuition'))
+    return renderEqIntuitionSection(heading, body);
+  if (heading.includes('🌍') || h.includes('where you') || h.includes('real-world'))
+    return renderEqApplicationsSection(heading, body);
+  if (heading.includes('📐') || h.includes('step-by-step') || h.includes('how it works'))
+    return renderEqStepsSection(heading, body);
+  if (heading.includes('⚠️') || h.includes('confused') || h.includes('confusion'))
+    return renderConfusionSection(heading, body);
+  if (heading.includes('🗺️') || h.includes('roadmap'))
+    return renderRoadmapSection(heading, body);
+  return renderDefaultSection(heading, body);
+}
+
+function renderEqHeroSection(heading, body) {
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
+    <div class="exp-section exp-section--hero eq-hero">
+      <div class="exp-section-header">
+        <span class="exp-section-icon">🎯</span>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
+      </div>
+      <div class="exp-hero-text">${renderMarkdown(body)}</div>
+    </div>`;
+}
+
+function renderEqSymbolSection(heading, body) {
+  const lines = body.split('\n');
+  const symbols = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    if (!line) { i++; continue; }
+    const match = line.match(/^\*\*([^*]+)\*\*[:\s]+(.*)$/);
+    if (match) {
+      const sym = match[1].trim();
+      let content = match[2].trim();
+      i++;
+      while (i < lines.length) {
+        const next = lines[i].trim();
+        if (!next || /^\*\*/.test(next)) break;
+        content += ' ' + next; i++;
+      }
+      const analogyRx = /(Think of it like[\s\S]*)/i;
+      const am = content.match(analogyRx);
+      symbols.push(am
+        ? { sym, def: content.replace(am[1], '').trim(), analogy: am[1].trim() }
+        : { sym, def: content, analogy: null });
+    } else { i++; }
+  }
+  if (symbols.length === 0) return renderDefaultSection(heading, body);
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
+    <div class="exp-section exp-section--concepts eq-symbols">
+      <div class="exp-section-header">
+        <span class="exp-section-icon">🔤</span>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
+      </div>
+      <div class="eq-symbol-grid">
+        ${symbols.map(s => `
+          <div class="eq-symbol-card">
+            <div class="eq-symbol-glyph">${escapeHtml(s.sym)}</div>
+            <div class="eq-symbol-def">${inlineFormat(escapeHtml(s.def))}</div>
+            ${s.analogy ? `<div class="concept-analogy">${inlineFormat(escapeHtml(s.analogy))}</div>` : ''}
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderEqIntuitionSection(heading, body) {
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
+    <div class="exp-section exp-section--narrative eq-intuition">
+      <div class="exp-section-header">
+        <span class="exp-section-icon">🧠</span>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
+      </div>
+      <div class="narrative-body eq-intuition-body">${renderMarkdown(body)}</div>
+    </div>`;
+}
+
+function renderEqApplicationsSection(heading, body) {
+  const lines = body.split('\n');
+  const apps = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    if (!line) { i++; continue; }
+    const match = line.match(/^\*\*([^*]+)\*\*[:\s]+(.*)$/);
+    if (match) {
+      apps.push({ domain: match[1].trim(), desc: match[2].trim() });
+    } else {
+      const bm = line.match(/^[-*\d.]+\s+(.+)$/);
+      if (bm) apps.push({ domain: null, desc: bm[1] });
+    }
+    i++;
+  }
+  if (apps.length === 0) return renderDefaultSection(heading, body);
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
+    <div class="exp-section exp-section--tips eq-applications">
+      <div class="exp-section-header">
+        <span class="exp-section-icon">🌍</span>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
+      </div>
+      <div class="tips-grid">
+        ${apps.map(a => `
+          <div class="tip-card eq-app-card">
+            ${a.domain ? `<strong>${escapeHtml(a.domain)}:</strong> ` : ''}${inlineFormat(escapeHtml(a.desc))}
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function renderEqStepsSection(heading, body) {
+  const steps = [];
+  body.split('\n').forEach(line => {
+    const t = line.trim();
+    if (!t) return;
+    const nm = t.match(/^\d+\.\s+(.+)$/); if (nm) { steps.push(nm[1]); return; }
+    const bm = t.match(/^[-*]\s+(.+)$/); if (bm) { steps.push(bm[1]); return; }
+    if (steps.length > 0) steps[steps.length - 1] += ' ' + t;
+    else steps.push(t);
+  });
+  if (steps.length === 0) return renderDefaultSection(heading, body);
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
+    <div class="exp-section exp-section--roadmap eq-steps">
+      <div class="exp-section-header">
+        <span class="exp-section-icon">📐</span>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
+      </div>
+      <ol class="roadmap-steps">
+        ${steps.map((step, idx) => `
+          <li class="roadmap-step eq-step">
+            <div class="roadmap-num">${idx + 1}</div>
+            <div class="roadmap-content">${inlineFormat(escapeHtml(step))}</div>
+          </li>`).join('')}
+      </ol>
+    </div>`;
+}
+
+function exportEquation(format) {
+  if (!STATE.equationData) return;
+  if (format === 'md') {
+    const blob = new Blob([STATE.equationData], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'equation_explanation.md';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+  } else if (format === 'pdf') {
+    const content = document.getElementById('equation-content');
+    html2pdf().set({
+      margin: 10, filename: 'equation_explanation.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(content).save();
   }
 }
 
@@ -677,32 +1253,61 @@ function renderDifficultySection(heading, body) {
 
 // ── 3. Breakdown Accordion ───────────────────────────────────
 function renderBreakdownSection(heading, body) {
-  const lines = body.split('\n');
+  // Pre-process: strip standalone # / ## / ### lines and sub-headings within body
+  const rawLines = body.split('\n').filter(line => {
+    const t = line.trim();
+    // Drop pure hash lines (e.g. "#", "##") and sub-heading lines ("#### Foo")
+    if (/^#{1,6}\s/.test(t) || /^#{1,6}$/.test(t)) return false;
+    return true;
+  });
+
   const blocks = [];
   let i = 0;
 
-  while (i < lines.length) {
-    const line = lines[i].trim();
+  while (i < rawLines.length) {
+    const raw = rawLines[i];
+    const line = raw.trim();
     if (!line) { i++; continue; }
-    const match = line.match(/^\*\*([^*]+)\*\*[:\s]+(.*)$/);
+
+    // Strip leading bullet/dash before bold: "* **Title:**" → "**Title:**"
+    const stripped = line.replace(/^[-*•]\s+/, '');
+
+    // Match "**Title:**", "**Title:** body", or "**Title**" (no colon required)
+    const match =
+      stripped.match(/^\*\*([^*]+?)\*\*[:\s]+(.*)$/) ||
+      stripped.match(/^\*\*([^*]+?)\*\*$/);
+
     if (match) {
-      const title = match[1].trim();
-      let content = match[2].trim();
+      // Clean trailing ** or * from title (AI sometimes forgets to close)
+      const title = match[1].trim().replace(/\*+$/, '').replace(/^\*+/, '');
+      let content = (match[2] || '').trim();
       i++;
-      while (i < lines.length) {
-        const next = lines[i].trim();
+      while (i < rawLines.length) {
+        const next = rawLines[i].trim().replace(/^[-*•]\s+/, '');
         if (!next) {
+          // blank line — peek ahead
           let peek = i + 1;
-          while (peek < lines.length && !lines[peek].trim()) peek++;
-          if (peek >= lines.length || /^\*\*/.test(lines[peek].trim())) break;
+          while (peek < rawLines.length && !rawLines[peek].trim()) peek++;
+          const peekLine = (rawLines[peek] || '').trim().replace(/^[-*•]\s+/, '');
+          if (peek >= rawLines.length || /^\*\*/.test(peekLine)) break;
           i++; continue;
         }
+        // Next bold title → start new block
         if (/^\*\*/.test(next)) break;
-        content += '\n' + lines[i];
+        // Skip sub-heading lines that crept in
+        if (/^#{1,6}[\s#]/.test(rawLines[i].trim()) || rawLines[i].trim() === '#') { i++; continue; }
+        content += '\n' + rawLines[i];
         i++;
       }
-      blocks.push({ title, content: content.trim() });
+      // Sanitize content: remove lone asterisks / hashes
+      const cleanContent = content
+        .split('\n')
+        .map(l => l.replace(/^\s*[#*]\s*$/, '').trim())
+        .filter(l => l)
+        .join('\n');
+      blocks.push({ title, content: cleanContent });
     } else {
+      // Orphan line — append to last block
       if (blocks.length > 0) blocks[blocks.length - 1].content += '\n' + line;
       i++;
     }
@@ -718,6 +1323,8 @@ function renderBreakdownSection(heading, body) {
     if (am) { analogy = am[1]; mainText = mainText.replace(analogy, '').trim(); }
     const tm = mainText.match(trickyRx);
     if (tm) { tricky = tm[1]; mainText = mainText.replace(tricky, '').trim(); }
+    // Final clean: remove stray leading * / # from mainText
+    mainText = mainText.replace(/^[\s*#]+$/gm, '').replace(/\n{3,}/g, '\n\n').trim();
     return { mainText, analogy, tricky };
   }
 
@@ -856,16 +1463,41 @@ function renderConfusionSection(heading, body) {
     </div>`;
 }
 
-// ── 7. Tips Grid ─────────────────────────────────────────────
+// ── 7. Tips List ─────────────────────────────────────────────
 function renderTipsSection(heading, body) {
+  // Parse tips: support **Title:** body, numbered, bulleted, and plain lines
   const tips = [];
-  body.split('\n').forEach(line => {
-    const t = line.trim();
-    if (!t || /^#+/.test(t)) return;
-    const bm = t.match(/^[-*]\s+(.+)$/); if (bm) { tips.push(bm[1]); return; }
-    const nm = t.match(/^\d+\.\s+(.+)$/); if (nm) { tips.push(nm[1]); return; }
-    tips.push(t);
-  });
+  const rawLines = body.split('\n');
+  let i = 0;
+  while (i < rawLines.length) {
+    const t = rawLines[i].trim();
+    if (!t || /^#{1,6}[\s#]/.test(t) || /^#{1,6}$/.test(t)) { i++; continue; }
+
+    // Strip leading bullet/number
+    const stripped = t.replace(/^[-*•]\s+/, '').replace(/^\d+\.\s+/, '');
+
+    // Bold title + body on same line: **Watch the Data Flow:** Add print...
+    const boldMatch = stripped.match(/^\*\*([^*]+?)\*\*[:\s]+(.*)$/);
+    if (boldMatch) {
+      const title = boldMatch[1].trim();
+      let body2 = boldMatch[2].trim();
+      i++;
+      // Collect continuation lines until next tip
+      while (i < rawLines.length) {
+        const next = rawLines[i].trim();
+        if (!next) { i++; break; }
+        if (/^[-*•]\s+\*\*/.test(next) || /^\d+\.\s+\*\*/.test(next) || /^\*\*/.test(next.replace(/^[-*•]\s+/, ''))) break;
+        if (/^#{1,6}[\s#]/.test(next)) { i++; break; }
+        body2 += ' ' + next;
+        i++;
+      }
+      tips.push({ title, body: body2 });
+      continue;
+    }
+    // Plain tip — no bold title
+    if (stripped) tips.push({ title: null, body: stripped });
+    i++;
+  }
 
   if (tips.length === 0) return renderDefaultSection(heading, body);
   const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
@@ -875,8 +1507,14 @@ function renderTipsSection(heading, body) {
         <span class="exp-section-icon">💡</span>
         <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
-      <div class="tips-grid">
-        ${tips.map(tip => `<div class="tip-card">${inlineFormat(escapeHtml(tip))}</div>`).join('')}
+      <div class="tips-list">
+        ${tips.map(tip => `
+          <div class="tip-item">
+            <span class="tip-bulb">💡</span>
+            <div class="tip-body">
+              ${tip.title ? `<strong class="tip-title">${inlineFormat(escapeHtml(tip.title))}:</strong> ` : ''}${inlineFormat(escapeHtml(tip.body))}
+            </div>
+          </div>`).join('')}
       </div>
     </div>`;
 }
@@ -1220,6 +1858,14 @@ function renderMarkdown(text) {
 function inlineFormat(html) {
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Linkify [Line N] and [Lines N-M] — clickable line references
+  html = html.replace(/\[Lines?\s*(\d+)(?:\s*[-\u2013]\s*(\d+))?\]/gi, (_, start, end) => {
+    const s = parseInt(start, 10);
+    const e = end ? parseInt(end, 10) : null;
+    const label = e ? `Lines ${s}\u2013${e}` : `Line ${s}`;
+    const fn    = e ? `jumpToLines(${s},${e})` : `jumpToLine(${s})`;
+    return `<span class="line-ref" onclick="${fn}" title="Click to jump to ${label}">${label}</span>`;
+  });
   return html;
 }
 
@@ -1262,6 +1908,12 @@ function hideError()    { $('.error-card').classList.remove('active'); }
 function setButtonsDisabled(d) {
   $('#btn-explain').disabled = d;
   $('#btn-visualize').disabled = d;
+}
+
+function setButtonsDisabledAll(d) {
+  $('#btn-explain').disabled = d;
+  $('#btn-visualize').disabled = d;
+  $('#btn-explain-equation').disabled = d;
 }
 
 function switchResultTab(tab) {
