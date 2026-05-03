@@ -343,7 +343,7 @@ function friendlyError(rawMessage) {
                                             return '🛡️ This model filtered the request. Try a different snippet or model.';
   if (/network|fetch/i.test(msg))          return '🌐 Network error — check your internet connection and try again.';
   if (/unexpected|format/i.test(msg))      return '🤔 The AI returned an unexpected response. Try again, or switch to a different model in Setup.';
-  return \`❌ Something went wrong: \${msg}\n\nTip: Try switching the AI model in Setup, or paste a smaller snippet.\`;
+  return `❌ Something went wrong: ${msg}\n\nTip: Try switching the AI model in Setup, or paste a smaller snippet.`;
 }
 
 // ===== OPENROUTER LIMITS =====
@@ -362,9 +362,9 @@ async function checkOpenRouterLimits() {
   loading.style.display = 'flex'; body.style.display = 'none';
   try {
     const res = await fetch('https://openrouter.ai/api/v1/key', {
-      headers: { 'Authorization': \`Bearer \${token}\` }
+      headers: { 'Authorization': `Bearer ${token}` }
     });
-    if (!res.ok) throw new Error(\`API returned \${res.status}.\`);
+    if (!res.ok) throw new Error(`API returned ${res.status}.`);
     const json = await res.json();
     const d = json.data;
     const isFree = d.is_free_tier;
@@ -373,37 +373,37 @@ async function checkOpenRouterLimits() {
     const remaining = d.limit_remaining;
     const usedPercent = hasLimit && limit > 0 ? Math.min(100, ((limit - (remaining || 0)) / limit) * 100) : 0;
     const fmt = (v) => v === null || v === undefined ? '—' : '$' + Number(v).toFixed(4);
-    body.innerHTML = \`
+    body.innerHTML = `
       <div class="or-limits-grid">
         <div class="or-stat-row tier-row">
-          <span class="or-stat-label">\${isFree ? '🆓' : '💎'} Account Tier</span>
-          <span class="or-stat-value \${isFree ? 'tier-free' : 'tier-paid'}">\${isFree ? 'Free Tier' : 'Paid Tier'}</span>
+          <span class="or-stat-label">${isFree ? '🆓' : '💎'} Account Tier</span>
+          <span class="or-stat-value ${isFree ? 'tier-free' : 'tier-paid'}">${isFree ? 'Free Tier' : 'Paid Tier'}</span>
         </div>
-        \${d.label ? \`<div class="or-stat-row"><span class="or-stat-label">🏷️ Key Label</span><span class="or-stat-value">\${escapeHtml(d.label)}</span></div>\` : ''}
-        \${hasLimit ? \`
-        <div class="or-stat-row"><span class="or-stat-label">💳 Credit Limit</span><span class="or-stat-value">\${fmt(limit)}</span></div>
-        <div class="or-stat-row"><span class="or-stat-label">✅ Remaining</span><span class="or-stat-value remaining">\${fmt(remaining)}</span></div>
-        <div class="or-limits-bar-wrap"><div class="or-limits-bar" style="width:\${usedPercent.toFixed(1)}%"></div></div>
-        <div class="or-stat-row"><span class="or-stat-label">🔄 Resets</span><span class="or-stat-value">\${d.limit_reset || 'Never'}</span></div>\`
-        : \`<div class="or-stat-row"><span class="or-stat-label">💳 Credit Limit</span><span class="or-stat-value remaining">Unlimited</span></div>\`}
+        ${d.label ? `<div class="or-stat-row"><span class="or-stat-label">🏷️ Key Label</span><span class="or-stat-value">${escapeHtml(d.label)}</span></div>` : ''}
+        ${hasLimit ? `
+        <div class="or-stat-row"><span class="or-stat-label">💳 Credit Limit</span><span class="or-stat-value">${fmt(limit)}</span></div>
+        <div class="or-stat-row"><span class="or-stat-label">✅ Remaining</span><span class="or-stat-value remaining">${fmt(remaining)}</span></div>
+        <div class="or-limits-bar-wrap"><div class="or-limits-bar" style="width:${usedPercent.toFixed(1)}%"></div></div>
+        <div class="or-stat-row"><span class="or-stat-label">🔄 Resets</span><span class="or-stat-value">${d.limit_reset || 'Never'}</span></div>`
+        : `<div class="or-stat-row"><span class="or-stat-label">💳 Credit Limit</span><span class="or-stat-value remaining">Unlimited</span></div>`}
       </div>
       <div class="or-usage-section">
         <span class="or-usage-title">📈 Usage Breakdown</span>
         <div class="or-usage-grid">
-          <div class="or-usage-item"><span class="or-usage-period">Today</span><span class="or-usage-amount">\${fmt(d.usage_daily)}</span></div>
-          <div class="or-usage-item"><span class="or-usage-period">This Week</span><span class="or-usage-amount">\${fmt(d.usage_weekly)}</span></div>
-          <div class="or-usage-item"><span class="or-usage-period">This Month</span><span class="or-usage-amount">\${fmt(d.usage_monthly)}</span></div>
-          <div class="or-usage-item"><span class="or-usage-period">All Time</span><span class="or-usage-amount">\${fmt(d.usage)}</span></div>
+          <div class="or-usage-item"><span class="or-usage-period">Today</span><span class="or-usage-amount">${fmt(d.usage_daily)}</span></div>
+          <div class="or-usage-item"><span class="or-usage-period">This Week</span><span class="or-usage-amount">${fmt(d.usage_weekly)}</span></div>
+          <div class="or-usage-item"><span class="or-usage-period">This Month</span><span class="or-usage-amount">${fmt(d.usage_monthly)}</span></div>
+          <div class="or-usage-item"><span class="or-usage-period">All Time</span><span class="or-usage-amount">${fmt(d.usage)}</span></div>
         </div>
       </div>
-      <div class="or-limits-free-info \${!isFree ? 'paid' : ''}">
-        <span class="free-badge \${!isFree ? 'paid-badge' : ''}">⚡ Free Model Limits</span>
-        <span>20 req/min • \${isFree ? '50' : '1000'} req/day</span>
-        \${isFree ? '<span class="or-limits-hint">Purchase ≥$10 credits → 1000 req/day</span>' : ''}
-      </div>\`;
+      <div class="or-limits-free-info ${!isFree ? 'paid' : ''}">
+        <span class="free-badge ${!isFree ? 'paid-badge' : ''}">⚡ Free Model Limits</span>
+        <span>20 req/min • ${isFree ? '50' : '1000'} req/day</span>
+        ${isFree ? '<span class="or-limits-hint">Purchase ≥$10 credits → 1000 req/day</span>' : ''}
+      </div>`;
     body.style.display = 'block';
   } catch (e) {
-    body.innerHTML = \`<p class="or-limits-error">❌ \${escapeHtml(e.message)}</p>\`;
+    body.innerHTML = `<p class="or-limits-error">❌ ${escapeHtml(e.message)}</p>`;
     body.style.display = 'block';
   } finally {
     loading.style.display = 'none';
@@ -425,7 +425,7 @@ async function callAPI(systemPrompt, userCode) {
 async function callGemini(token, systemPrompt, userCode) {
   const model = STATE.geminiModel || 'gemini-2.5-flash';
   console.log('[Gemini] Calling model:', model);
-  const url = \`https://generativelanguage.googleapis.com/v1beta/models/\${model}:generateContent?key=\${token}\`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${token}`;
   const res = await fetchWithRetry(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -436,7 +436,7 @@ async function callGemini(token, systemPrompt, userCode) {
     })
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(\`Google Gemini: \${data?.error?.message || 'API error: ' + res.status}\`);
+  if (!res.ok) throw new Error(`Google Gemini: ${data?.error?.message || 'API error: ' + res.status}`);
   if (data.candidates?.length > 0) {
     const parts = data.candidates[0].content?.parts;
     if (parts?.length > 0) return parts[0].text || '';
@@ -465,10 +465,10 @@ async function fetchWithRetry(url, options, maxRetries = 3) {
       if (txt && $('.loading-container').classList.contains('active')) {
         clearInterval(loadingInterval);
         let secondsLeft = secondsTotal;
-        txt.textContent = \`🐢 Rate limited. Retrying in \${secondsLeft}s... (this is normal!)\`;
+        txt.textContent = `🐢 Rate limited. Retrying in ${secondsLeft}s... (this is normal!)`;
         const countdown = setInterval(() => {
           secondsLeft--;
-          if (secondsLeft > 0) txt.textContent = \`🐢 Rate limited. Retrying in \${secondsLeft}s... (this is normal!)\`;
+          if (secondsLeft > 0) txt.textContent = `🐢 Rate limited. Retrying in ${secondsLeft}s... (this is normal!)`;
         }, 1000);
         await new Promise(r => setTimeout(r, waitTime));
         clearInterval(countdown);
@@ -487,14 +487,14 @@ async function callHuggingFace(token, systemPrompt, userCode) {
   console.log('[HuggingFace] Calling model:', model);
   const res = await fetchWithRetry('https://router.huggingface.co/hf-inference/v1/chat/completions', {
     method: 'POST',
-    headers: { 'Authorization': \`Bearer \${token}\`, 'Content-Type': 'application/json' },
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userCode }],
       max_tokens: 8000, temperature: 0.4
     })
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(\`Hugging Face: \${data?.error?.message || data?.error || 'API error: ' + res.status}\`);
+  if (!res.ok) throw new Error(`Hugging Face: ${data?.error?.message || data?.error || 'API error: ' + res.status}`);
   if (data.choices?.length > 0) return data.choices[0].message?.content || '';
   throw new Error('Unexpected response format from Hugging Face');
 }
@@ -505,7 +505,7 @@ async function callOpenRouter(token, systemPrompt, userCode) {
   const res = await fetchWithRetry('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': \`Bearer \${token}\`, 'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json',
       'HTTP-Referer': 'ml-code-explainer', 'X-Title': 'ML Code Explainer'
     },
     body: JSON.stringify({
@@ -515,8 +515,8 @@ async function callOpenRouter(token, systemPrompt, userCode) {
   });
   const data = await res.json();
   console.log('[OpenRouter] Status:', res.status, JSON.stringify(data).substring(0, 500));
-  if (!res.ok) throw new Error(\`OpenRouter: \${data?.error?.message || data?.error?.code || 'API error: ' + res.status}\`);
-  if (data.error) throw new Error(\`OpenRouter: \${data.error.message || JSON.stringify(data.error)}\`);
+  if (!res.ok) throw new Error(`OpenRouter: ${data?.error?.message || data?.error?.code || 'API error: ' + res.status}`);
+  if (data.error) throw new Error(`OpenRouter: ${data.error.message || JSON.stringify(data.error)}`);
   if (data.choices?.length > 0) {
     const choice = data.choices[0];
     const content = choice.message?.content || choice.text || '';
@@ -581,7 +581,7 @@ function renderExplanation(text) {
     const body = lines.slice(1).join('\n').trim();
     html += renderSection(rawHeading, body);
   });
-  if (!html) html = \`<div class="exp-section exp-section--default">\${renderMarkdown(text)}</div>\`;
+  if (!html) html = `<div class="exp-section exp-section--default">${renderMarkdown(text)}</div>`;
   container.innerHTML = html;
 
   // Wire breakdown accordion — start ALL items open
@@ -620,15 +620,15 @@ function renderSection(heading, body) {
 
 // ── 1. Hero ──────────────────────────────────────────────────
 function renderHeroSection(heading, body) {
-  const clean = heading.replace(/^[\\p{Emoji}\\s]+/u, '').trim() || heading;
-  return \`
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
     <div class="exp-section exp-section--hero">
       <div class="exp-section-header">
         <span class="exp-section-icon">🎯</span>
-        <h3 class="exp-section-title">\${escapeHtml(clean)}</h3>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
-      <div class="exp-hero-text">\${renderMarkdown(body)}</div>
-    </div>\`;
+      <div class="exp-hero-text">${renderMarkdown(body)}</div>
+    </div>`;
 }
 
 // ── 2. Difficulty ────────────────────────────────────────────
@@ -643,36 +643,36 @@ function renderDifficultySection(heading, body) {
   const prereqs = [];
   for (const line of lines) {
     const t = line.trim();
-    if (/^(beginner|intermediate|advanced)[:\\s]/i.test(t)) continue; // skip rating line
-    const boldMatch = t.match(/^\\*\\*([^*]+)\\*\\*[:\\s]+(.+)$/);
+    if (/^(beginner|intermediate|advanced)[:\s]/i.test(t)) continue; // skip rating line
+    const boldMatch = t.match(/^\*\*([^*]+)\*\*[:\s]+(.+)$/);
     if (boldMatch) { prereqs.push({ term: boldMatch[1].trim(), desc: boldMatch[2].trim() }); continue; }
-    const bulletMatch = t.match(/^[-*]\\s+(.+)$/);
+    const bulletMatch = t.match(/^[-*]\s+(.+)$/);
     if (bulletMatch) { prereqs.push({ term: null, desc: bulletMatch[1] }); continue; }
-    const numMatch = t.match(/^\\d+\\.\\s+(.+)$/);
+    const numMatch = t.match(/^\d+\.\s+(.+)$/);
     if (numMatch) prereqs.push({ term: null, desc: numMatch[1] });
   }
 
-  const clean = heading.replace(/^[\\p{Emoji}\\s]+/u, '').trim() || heading;
-  return \`
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
     <div class="exp-section exp-section--difficulty">
       <div class="exp-section-header">
         <span class="exp-section-icon">📊</span>
-        <h3 class="exp-section-title">\${escapeHtml(clean)}</h3>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
       <div class="difficulty-row">
         <span class="difficulty-label">Difficulty:</span>
-        <span class="difficulty-badge difficulty-badge--\${badgeClass}">\${badgeIcon} \${badgeText}</span>
+        <span class="difficulty-badge difficulty-badge--${badgeClass}">${badgeIcon} ${badgeText}</span>
       </div>
-      \${prereqs.length > 0 ? \`
+      ${prereqs.length > 0 ? `
         <span class="prereq-title">What you'll need to know</span>
         <ul class="prereq-list">
-          \${prereqs.map(p => \`
+          ${prereqs.map(p => `
             <li class="prereq-item">
               <span class="prereq-dot"></span>
-              <span>\${p.term ? \`<strong>\${escapeHtml(p.term)}:</strong> \` : ''}\${inlineFormat(escapeHtml(p.desc))}</span>
-            </li>\`).join('')}
-        </ul>\` : renderMarkdown(body)}
-    </div>\`;
+              <span>${p.term ? `<strong>${escapeHtml(p.term)}:</strong> ` : ''}${inlineFormat(escapeHtml(p.desc))}</span>
+            </li>`).join('')}
+        </ul>` : renderMarkdown(body)}
+    </div>`;
 }
 
 // ── 3. Breakdown Accordion ───────────────────────────────────
@@ -684,7 +684,7 @@ function renderBreakdownSection(heading, body) {
   while (i < lines.length) {
     const line = lines[i].trim();
     if (!line) { i++; continue; }
-    const match = line.match(/^\\*\\*([^*]+)\\*\\*[:\\s]+(.*)$/);
+    const match = line.match(/^\*\*([^*]+)\*\*[:\s]+(.*)$/);
     if (match) {
       const title = match[1].trim();
       let content = match[2].trim();
@@ -694,16 +694,16 @@ function renderBreakdownSection(heading, body) {
         if (!next) {
           let peek = i + 1;
           while (peek < lines.length && !lines[peek].trim()) peek++;
-          if (peek >= lines.length || /^\\*\\*/.test(lines[peek].trim())) break;
+          if (peek >= lines.length || /^\*\*/.test(lines[peek].trim())) break;
           i++; continue;
         }
-        if (/^\\*\\*/.test(next)) break;
-        content += '\\n' + lines[i];
+        if (/^\*\*/.test(next)) break;
+        content += '\n' + lines[i];
         i++;
       }
       blocks.push({ title, content: content.trim() });
     } else {
-      if (blocks.length > 0) blocks[blocks.length - 1].content += '\\n' + line;
+      if (blocks.length > 0) blocks[blocks.length - 1].content += '\n' + line;
       i++;
     }
   }
@@ -711,8 +711,8 @@ function renderBreakdownSection(heading, body) {
   if (blocks.length === 0) return renderDefaultSection(heading, body);
 
   function parseBlockContent(content) {
-    const analogyRx = /(Think of it like[^.]*\\.)/i;
-    const trickyRx  = /(The trickiest line[^.]*\\.[^.]*\\.)/i;
+    const analogyRx = /(Think of it like[^.]*\.)/i;
+    const trickyRx  = /(The trickiest line[^.]*\.[^.]*\.)/i;
     let mainText = content, analogy = null, tricky = null;
     const am = content.match(analogyRx);
     if (am) { analogy = am[1]; mainText = mainText.replace(analogy, '').trim(); }
@@ -721,31 +721,31 @@ function renderBreakdownSection(heading, body) {
     return { mainText, analogy, tricky };
   }
 
-  const clean = heading.replace(/^[\\p{Emoji}\\s]+/u, '').trim() || heading;
-  return \`
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
     <div class="exp-section exp-section--breakdown">
       <div class="exp-section-header">
         <span class="exp-section-icon">🔍</span>
-        <h3 class="exp-section-title">\${escapeHtml(clean)}</h3>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
       <div class="breakdown-items">
-        \${blocks.map(block => {
+        ${blocks.map(block => {
           const { mainText, analogy, tricky } = parseBlockContent(block.content);
-          return \`
+          return `
             <div class="breakdown-item">
               <div class="breakdown-item-header">
-                <strong>\${inlineFormat(escapeHtml(block.title))}</strong>
+                <strong>${inlineFormat(escapeHtml(block.title))}</strong>
                 <span class="breakdown-chevron">▸</span>
               </div>
               <div class="breakdown-item-body">
-                \${mainText ? \`<p>\${inlineFormat(escapeHtml(mainText))}</p>\` : ''}
-                \${analogy  ? \`<div class="bd-analogy">🌍 \${inlineFormat(escapeHtml(analogy))}</div>\` : ''}
-                \${tricky   ? \`<div class="bd-tricky">⚡ \${inlineFormat(escapeHtml(tricky))}</div>\` : ''}
+                ${mainText ? `<p>${inlineFormat(escapeHtml(mainText))}</p>` : ''}
+                ${analogy  ? `<div class="bd-analogy">🌍 ${inlineFormat(escapeHtml(analogy))}</div>` : ''}
+                ${tricky   ? `<div class="bd-tricky">⚡ ${inlineFormat(escapeHtml(tricky))}</div>` : ''}
               </div>
-            </div>\`;
+            </div>`;
         }).join('')}
       </div>
-    </div>\`;
+    </div>`;
 }
 
 // ── 4. Concept Dictionary ────────────────────────────────────
@@ -757,19 +757,19 @@ function renderConceptSection(heading, body) {
   while (i < lines.length) {
     const line = lines[i].trim();
     if (!line) { i++; continue; }
-    const match = line.match(/^\\*\\*([^*]+)\\*\\*[:\\s]+(.*)$/);
+    const match = line.match(/^\*\*([^*]+)\*\*[:\s]+(.*)$/);
     if (match) {
       const term = match[1].trim();
       let content = match[2].trim();
       i++;
       while (i < lines.length) {
         const next = lines[i].trim();
-        if (!next || /^\\*\\*/.test(next) || /^[-*]\\s/.test(next)) break;
+        if (!next || /^\*\*/.test(next) || /^[-*]\s/.test(next)) break;
         content += ' ' + next;
         i++;
       }
       // Split out "Think of it like..." as the analogy
-      const analogyRx = /(Think of it like[\\s\\S]*)/i;
+      const analogyRx = /(Think of it like[\s\S]*)/i;
       const am = content.match(analogyRx);
       if (am) {
         concepts.push({ term, def: content.replace(am[1], '').trim(), analogy: am[1].trim() });
@@ -781,35 +781,35 @@ function renderConceptSection(heading, body) {
 
   if (concepts.length === 0) return renderDefaultSection(heading, body);
 
-  const clean = heading.replace(/^[\\p{Emoji}\\s]+/u, '').trim() || heading;
-  return \`
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
     <div class="exp-section exp-section--concepts">
       <div class="exp-section-header">
         <span class="exp-section-icon">🧠</span>
-        <h3 class="exp-section-title">\${escapeHtml(clean)}</h3>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
       <div class="concept-grid">
-        \${concepts.map(c => \`
+        ${concepts.map(c => `
           <div class="concept-card">
-            <div class="concept-term">\${escapeHtml(c.term)}</div>
-            <div class="concept-def">\${inlineFormat(escapeHtml(c.def))}</div>
-            \${c.analogy ? \`<div class="concept-analogy">\${inlineFormat(escapeHtml(c.analogy))}</div>\` : ''}
-          </div>\`).join('')}
+            <div class="concept-term">${escapeHtml(c.term)}</div>
+            <div class="concept-def">${inlineFormat(escapeHtml(c.def))}</div>
+            ${c.analogy ? `<div class="concept-analogy">${inlineFormat(escapeHtml(c.analogy))}</div>` : ''}
+          </div>`).join('')}
       </div>
-    </div>\`;
+    </div>`;
 }
 
 // ── 5. Narrative ─────────────────────────────────────────────
 function renderNarrativeSection(heading, body) {
-  const clean = heading.replace(/^[\\p{Emoji}\\s]+/u, '').trim() || heading;
-  return \`
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
     <div class="exp-section exp-section--narrative">
       <div class="exp-section-header">
         <span class="exp-section-icon">🔗</span>
-        <h3 class="exp-section-title">\${escapeHtml(clean)}</h3>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
-      <div class="narrative-body">\${renderMarkdown(body)}</div>
-    </div>\`;
+      <div class="narrative-body">${renderMarkdown(body)}</div>
+    </div>`;
 }
 
 // ── 6. Confusion Callouts ────────────────────────────────────
@@ -820,40 +820,40 @@ function renderConfusionSection(heading, body) {
   while (i < lines.length) {
     const line = lines[i].trim();
     if (!line) { i++; continue; }
-    const match = line.match(/^\\*\\*([^*]+)\\*\\*[:\\s]+(.*)$/);
+    const match = line.match(/^\*\*([^*]+)\*\*[:\s]+(.*)$/);
     if (match) {
       const trigger = match[1].trim();
       let content = match[2].trim();
       i++;
       while (i < lines.length) {
         const next = lines[i].trim();
-        if (!next || /^\\*\\*/.test(next)) break;
+        if (!next || /^\*\*/.test(next)) break;
         content += ' ' + next; i++;
       }
       items.push({ trigger, content });
     } else {
-      const bm = line.match(/^[-*]\\s+(.+)$/);
+      const bm = line.match(/^[-*]\s+(.+)$/);
       if (bm) items.push({ trigger: null, content: bm[1] });
       i++;
     }
   }
 
   if (items.length === 0) return renderDefaultSection(heading, body);
-  const clean = heading.replace(/^[\\p{Emoji}\\s]+/u, '').trim() || heading;
-  return \`
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
     <div class="exp-section exp-section--confusion">
       <div class="exp-section-header">
         <span class="exp-section-icon">⚠️</span>
-        <h3 class="exp-section-title">\${escapeHtml(clean)}</h3>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
       <div class="confusion-list">
-        \${items.map(item => \`
+        ${items.map(item => `
           <div class="confusion-box">
-            \${item.trigger ? \`<div class="confusion-trigger">\${escapeHtml(item.trigger)}</div>\` : ''}
-            <div class="confusion-aha">\${inlineFormat(escapeHtml(item.content))}</div>
-          </div>\`).join('')}
+            ${item.trigger ? `<div class="confusion-trigger">${escapeHtml(item.trigger)}</div>` : ''}
+            <div class="confusion-aha">${inlineFormat(escapeHtml(item.content))}</div>
+          </div>`).join('')}
       </div>
-    </div>\`;
+    </div>`;
 }
 
 // ── 7. Tips Grid ─────────────────────────────────────────────
@@ -862,23 +862,23 @@ function renderTipsSection(heading, body) {
   body.split('\n').forEach(line => {
     const t = line.trim();
     if (!t || /^#+/.test(t)) return;
-    const bm = t.match(/^[-*]\\s+(.+)$/); if (bm) { tips.push(bm[1]); return; }
-    const nm = t.match(/^\\d+\\.\\s+(.+)$/); if (nm) { tips.push(nm[1]); return; }
+    const bm = t.match(/^[-*]\s+(.+)$/); if (bm) { tips.push(bm[1]); return; }
+    const nm = t.match(/^\d+\.\s+(.+)$/); if (nm) { tips.push(nm[1]); return; }
     tips.push(t);
   });
 
   if (tips.length === 0) return renderDefaultSection(heading, body);
-  const clean = heading.replace(/^[\\p{Emoji}\\s]+/u, '').trim() || heading;
-  return \`
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
     <div class="exp-section exp-section--tips">
       <div class="exp-section-header">
         <span class="exp-section-icon">💡</span>
-        <h3 class="exp-section-title">\${escapeHtml(clean)}</h3>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
       <div class="tips-grid">
-        \${tips.map(tip => \`<div class="tip-card">\${inlineFormat(escapeHtml(tip))}</div>\`).join('')}
+        ${tips.map(tip => `<div class="tip-card">${inlineFormat(escapeHtml(tip))}</div>`).join('')}
       </div>
-    </div>\`;
+    </div>`;
 }
 
 // ── 8. Learning Roadmap ──────────────────────────────────────
@@ -888,93 +888,93 @@ function renderRoadmapSection(heading, body) {
   body.split('\n').forEach(line => {
     const t = line.trim();
     if (!t) return;
-    if (/^resource[:\\s]/i.test(t) || (t.includes('http') && steps.length > 0)) {
-      resourceLine = t.replace(/^resource[:\\s]*/i, '').trim(); return;
+    if (/^resource[:\s]/i.test(t) || (t.includes('http') && steps.length > 0)) {
+      resourceLine = t.replace(/^resource[:\s]*/i, '').trim(); return;
     }
-    const nm = t.match(/^\\d+\\.\\s+(.+)$/); if (nm) { steps.push(nm[1]); return; }
-    const bm = t.match(/^[-*]\\s+(.+)$/);  if (bm) steps.push(bm[1]);
+    const nm = t.match(/^\d+\.\s+(.+)$/); if (nm) { steps.push(nm[1]); return; }
+    const bm = t.match(/^[-*]\s+(.+)$/);  if (bm) steps.push(bm[1]);
   });
 
   if (steps.length === 0) return renderDefaultSection(heading, body);
-  const clean = heading.replace(/^[\\p{Emoji}\\s]+/u, '').trim() || heading;
-  return \`
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
     <div class="exp-section exp-section--roadmap">
       <div class="exp-section-header">
         <span class="exp-section-icon">🗺️</span>
-        <h3 class="exp-section-title">\${escapeHtml(clean)}</h3>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
       <ol class="roadmap-steps">
-        \${steps.map((step, idx) => \`
+        ${steps.map((step, idx) => `
           <li class="roadmap-step">
-            <div class="roadmap-num">\${idx + 1}</div>
-            <div class="roadmap-content">\${inlineFormat(escapeHtml(step))}</div>
-          </li>\`).join('')}
+            <div class="roadmap-num">${idx + 1}</div>
+            <div class="roadmap-content">${inlineFormat(escapeHtml(step))}</div>
+          </li>`).join('')}
       </ol>
-      \${resourceLine ? \`<div class="roadmap-resource">\${inlineFormat(escapeHtml(resourceLine))}</div>\` : ''}
-    </div>\`;
+      ${resourceLine ? `<div class="roadmap-resource">${inlineFormat(escapeHtml(resourceLine))}</div>` : ''}
+    </div>`;
 }
 
 // ── Default fallback ─────────────────────────────────────────
 function renderDefaultSection(heading, body) {
-  const iconMatch = heading.match(/^(\\p{Emoji})/u);
+  const iconMatch = heading.match(/^(\p{Emoji})/u);
   const icon = iconMatch ? iconMatch[1] : '📌';
-  const clean = heading.replace(/^[\\p{Emoji}\\s]+/u, '').trim() || heading;
-  return \`
+  const clean = heading.replace(/^[\p{Emoji}\s]+/u, '').trim() || heading;
+  return `
     <div class="exp-section exp-section--default">
       <div class="exp-section-header">
-        <span class="exp-section-icon">\${icon}</span>
-        <h3 class="exp-section-title">\${escapeHtml(clean)}</h3>
+        <span class="exp-section-icon">${icon}</span>
+        <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
-      \${renderMarkdown(body)}
-    </div>\`;
+      ${renderMarkdown(body)}
+    </div>`;
 }
 
 // ===== MERMAID HELPERS =====
 function sanitizeMermaid(code) {
   let s = code.replace(/<[^>]+>/g, '');
-  s = s.replace(/\\[([^\\]"]+)\\]/g, (match, label) => {
-    if (/[()=:;_<>°θΔ&{}#@!$%^*~\`|\\\\]/.test(label)) {
+  s = s.replace(/\[([^\]"]+)\]/g, (match, label) => {
+    if (/[()=:;_<>°θΔ&{}#@!$%^*~`|\\]/.test(label)) {
       const clean = label.replace(/["]/g,"'").replace(/[()]/g,'').replace(/[°θΔ]/g,'').replace(/[_]/g,' ').trim();
-      return \`["\${clean}"]\`;
+      return `["${clean}"]`;
     }
     return match;
   });
-  s = s.replace(/-->\\|([^|"]+)\\|/g, (_, label) => \`-->|"\${label}"|\`);
+  s = s.replace(/-->\|([^|"]+)\|/g, (_, label) => `-->|"${label}"|`);
   s = s.split('\n').filter(l => l.trim() !== '').join('\n');
   return s;
 }
 
 async function renderSingleMermaid(container, code, label) {
   const uid = Date.now() + Math.random().toString(36).substr(2, 5);
-  const id = \`mermaid-\${label}-\${uid}\`;
+  const id = `mermaid-${label}-${uid}`;
   const sanitized = sanitizeMermaid(code);
-  console.log(\`[Visual] Rendering \${label}:\`, sanitized.substring(0, 200));
-  container.innerHTML = \`<pre class="mermaid" id="\${id}">\${sanitized}</pre>\`;
+  console.log(`[Visual] Rendering ${label}:`, sanitized.substring(0, 200));
+  container.innerHTML = `<pre class="mermaid" id="${id}">${sanitized}</pre>`;
   try {
     await mermaid.run({ nodes: [document.getElementById(id)] });
-    const toolbar = $(\`#toolbar-\${label}\`);
+    const toolbar = $(`#toolbar-${label}`);
     if (toolbar) toolbar.style.display = 'flex';
     STATE.zooms[label] = 1;
     return true;
   } catch (e) {
-    console.warn(\`[Visual] \${label} sanitized failed, retrying original...\`, e);
-    const id2 = \`\${id}-retry\`;
-    container.innerHTML = \`<pre class="mermaid" id="\${id2}">\${code}</pre>\`;
+    console.warn(`[Visual] ${label} sanitized failed, retrying original...`, e);
+    const id2 = `${id}-retry`;
+    container.innerHTML = `<pre class="mermaid" id="${id2}">${code}</pre>`;
     try {
       await mermaid.run({ nodes: [document.getElementById(id2)] });
-      const toolbar = $(\`#toolbar-\${label}\`);
+      const toolbar = $(`#toolbar-${label}`);
       if (toolbar) toolbar.style.display = 'flex';
       STATE.zooms[label] = 1;
       return true;
     } catch (e2) {
-      console.warn(\`[Visual] \${label} failed completely:\`, e2);
-      container.innerHTML = \`
+      console.warn(`[Visual] ${label} failed completely:`, e2);
+      container.innerHTML = `
         <div class="mermaid-fallback">
           <p class="mermaid-fallback-label">⚠️ Diagram couldn't render automatically. Paste the code below into
             <a href="https://mermaid.live" target="_blank">mermaid.live</a> to view it:</p>
-          <pre class="mermaid-fallback-code">\${escapeHtml(code)}</pre>
-        </div>\`;
-      const toolbar = $(\`#toolbar-\${label}\`);
+          <pre class="mermaid-fallback-code">${escapeHtml(code)}</pre>
+        </div>`;
+      const toolbar = $(`#toolbar-${label}`);
       if (toolbar) toolbar.style.display = 'none';
       return false;
     }
@@ -984,8 +984,8 @@ async function renderSingleMermaid(container, code, label) {
 // ===== DIAGRAM ZOOM & EXPORT =====
 function zoomDiagram(label, amount) {
   STATE.zooms[label] = Math.max(0.2, Math.min(3, STATE.zooms[label] + amount));
-  const pre = document.querySelector(\`#diagram-\${label === 'concept' ? 'concept' : 'flow'} pre.mermaid\`);
-  if (pre) pre.style.transform = \`scale(\${STATE.zooms[label]})\`;
+  const pre = document.querySelector(`#diagram-${label === 'concept' ? 'concept' : 'flow'} pre.mermaid`);
+  if (pre) pre.style.transform = `scale(${STATE.zooms[label]})`;
 }
 
 function exportExplanation(format) {
@@ -1014,7 +1014,7 @@ function exportExplanation(format) {
 }
 
 function saveDiagram(label, format = 'svg') {
-  const container = document.querySelector(\`#diagram-\${label === 'concept' ? 'concept' : 'flow'}\`);
+  const container = document.querySelector(`#diagram-${label === 'concept' ? 'concept' : 'flow'}`);
   if (!container) return;
   const svg = container.querySelector('svg');
   if (!svg) { alert('No diagram rendered yet. Click "Visualize" first.'); return; }
@@ -1023,7 +1023,7 @@ function saveDiagram(label, format = 'svg') {
     const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     if (isDark) container.style.backgroundColor = '#1C1C1A';
     html2pdf().set({
-      margin: 10, filename: \`ml_explainer_\${label}.pdf\`,
+      margin: 10, filename: `ml_explainer_${label}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2, useCORS: true, logging: false },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
@@ -1032,13 +1032,13 @@ function saveDiagram(label, format = 'svg') {
   }
 
   let svgData = new XMLSerializer().serializeToString(svg);
-  if (!svgData.match(/^<svg[^>]+xmlns="http:\\/\\/www\\.w3\\.org\\/2000\\/svg"/))
+  if (!svgData.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/))
     svgData = svgData.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
 
   if (format === 'svg') {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' }));
-    a.download = \`ml_explainer_\${label}.svg\`;
+    a.download = `ml_explainer_${label}.svg`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
   } else if (format === 'png') {
     const canvas = document.createElement('canvas');
@@ -1054,7 +1054,7 @@ function saveDiagram(label, format = 'svg') {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       const a = document.createElement('a');
       a.href = canvas.toDataURL('image/png');
-      a.download = \`ml_explainer_\${label}.png\`;
+      a.download = `ml_explainer_${label}.png`;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
     };
     img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
@@ -1062,7 +1062,7 @@ function saveDiagram(label, format = 'svg') {
 }
 
 function openDiagramInNewTab(label) {
-  const container = document.querySelector(\`#diagram-\${label === 'concept' ? 'concept' : 'flow'}\`);
+  const container = document.querySelector(`#diagram-${label === 'concept' ? 'concept' : 'flow'}`);
   const svg = container?.querySelector('svg');
   if (!svg) return;
   const svgData = new XMLSerializer().serializeToString(svg);
@@ -1073,7 +1073,7 @@ function openDiagramInNewTab(label) {
 function renderVisual(text) {
   console.log('[Visual] Raw response:', text.substring(0, 500));
   const mermaidBlocks = [];
-  const mermaidRegex = /\`\`\`mermaid\s*\n([\s\S]*?)\`\`\`/g;
+  const mermaidRegex = /```mermaid\s*\n([\s\S]*?)```/g;
   let match;
   while ((match = mermaidRegex.exec(text)) !== null) mermaidBlocks.push(match[1].trim());
   console.log('[Visual] Found', mermaidBlocks.length, 'mermaid blocks');
@@ -1084,7 +1084,7 @@ function renderVisual(text) {
   if (wm) {
     walkthrough = wm[1].trim();
   } else {
-    const lastIdx = text.lastIndexOf('\`\`\`');
+    const lastIdx = text.lastIndexOf('```');
     if (lastIdx > 0) { const after = text.substring(lastIdx + 3).trim(); if (after.length > 20) walkthrough = after; }
   }
 
@@ -1093,14 +1093,14 @@ function renderVisual(text) {
   if (walkthrough) {
     const steps = walkthrough.match(/\d+\.\s+.+/g);
     if (steps) {
-      walkEl.innerHTML = \`
+      walkEl.innerHTML = `
         <ol class="walkthrough-timeline">
-          \${steps.map((s, i) => \`
+          ${steps.map((s, i) => `
             <li class="walkthrough-step">
-              <div class="wt-num">\${i + 1}</div>
-              <div class="wt-text">\${escapeHtml(s.replace(/^\\d+\\.\\s+/, ''))}</div>
-            </li>\`).join('')}
-        </ol>\`;
+              <div class="wt-num">${i + 1}</div>
+              <div class="wt-text">${escapeHtml(s.replace(/^\d+\.\s+/, ''))}</div>
+            </li>`).join('')}
+        </ol>`;
     } else {
       walkEl.innerHTML = renderMarkdown(walkthrough);
     }
@@ -1165,17 +1165,17 @@ function renderMarkdown(text) {
       let subHtml = '';
       if (subItems.length > 0) {
         subHtml = '<ul class="breakdown-sub-list">' +
-          subItems.map(sub => \`<li>\${inlineFormat(escapeHtml(sub.replace(/^[-*]\\s+/, '').replace(/^\\d+\\.\\s+/, '')))}</li>\`).join('') +
+          subItems.map(sub => `<li>${inlineFormat(escapeHtml(sub.replace(/^[-*]\s+/, '').replace(/^\d+\.\s+/, '')))}</li>`).join('') +
           '</ul>';
       }
       output.push(
-        \`<div class="breakdown-item">\` +
-          \`<div class="breakdown-item-header">\` +
-            \`<strong>\${inlineFormat(escapeHtml(title))}</strong>\` +
-            \`<span class="breakdown-chevron">▸</span>\` +
-          \`</div>\` +
-          \`<div class="breakdown-item-body">\${subHtml}</div>\` +
-        \`</div>\`
+        `<div class="breakdown-item">` +
+          `<div class="breakdown-item-header">` +
+            `<strong>${inlineFormat(escapeHtml(title))}</strong>` +
+            `<span class="breakdown-chevron">▸</span>` +
+          `</div>` +
+          `<div class="breakdown-item-body">${subHtml}</div>` +
+        `</div>`
       );
       continue;
     }
@@ -1188,7 +1188,7 @@ function renderMarkdown(text) {
         if (!bm) break;
         listItems.push(bm[1]); i++;
       }
-      output.push('<ul>' + listItems.map(item => \`<li>\${inlineFormat(escapeHtml(item))}</li>\`).join('') + '</ul>');
+      output.push('<ul>' + listItems.map(item => `<li>${inlineFormat(escapeHtml(item))}</li>`).join('') + '</ul>');
       continue;
     }
 
@@ -1200,7 +1200,7 @@ function renderMarkdown(text) {
         if (!nm) break;
         listItems.push(nm[1]); i++;
       }
-      output.push('<ol>' + listItems.map(item => \`<li>\${inlineFormat(escapeHtml(item))}</li>\`).join('') + '</ol>');
+      output.push('<ol>' + listItems.map(item => `<li>${inlineFormat(escapeHtml(item))}</li>`).join('') + '</ol>');
       continue;
     }
 
@@ -1211,7 +1211,7 @@ function renderMarkdown(text) {
       paraLines.push(pLine); i++;
     }
     if (paraLines.length > 0)
-      output.push(\`<p>\${inlineFormat(escapeHtml(paraLines.join(' ')))}</p>\`);
+      output.push(`<p>${inlineFormat(escapeHtml(paraLines.join(' ')))}</p>`);
   }
 
   return output.join('');
@@ -1219,7 +1219,7 @@ function renderMarkdown(text) {
 
 function inlineFormat(html) {
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/\`([^\`]+)\`/g, '<code>$1</code>');
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
   return html;
 }
 
@@ -1252,7 +1252,7 @@ function showLoading(show) {
 function showResults() {
   $('.results-section').classList.add('active');
   $('#results-placeholder')?.classList.add('hidden');
-  $('#results-badge').textContent = \`Powered by: \${STATE.lastProvider} — \${STATE.lastModel}\`;
+  $('#results-badge').textContent = `Powered by: ${STATE.lastProvider} — ${STATE.lastModel}`;
 }
 
 function hideResults()  { $('.results-section').classList.remove('active'); }
@@ -1266,7 +1266,7 @@ function setButtonsDisabled(d) {
 
 function switchResultTab(tab) {
   $$('.result-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  $$('.tab-content').forEach(c => c.classList.toggle('active', c.id === \`tab-\${tab}\`));
+  $$('.tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${tab}`));
 }
 
 function clearAll() {
