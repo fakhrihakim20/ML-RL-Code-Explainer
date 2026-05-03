@@ -327,6 +327,44 @@ function bindEvents() {
   dz.addEventListener('drop',      (e) => { e.preventDefault(); dz.classList.remove('drag-over'); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) handleEquationImageFile(f); });
   // Global paste listener (images)
   document.addEventListener('paste', handleGlobalPaste);
+  initResizer();
+}
+
+function initResizer() {
+  const resizer = document.getElementById('app-resizer');
+  if (!resizer) return;
+  
+  let isResizing = false;
+  
+  resizer.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    resizer.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    // Prevent text selection while dragging
+    document.body.style.userSelect = 'none';
+  });
+  
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    
+    // Calculate new width: cap between 300px and 800px (or 60% of window width)
+    const maxWidth = Math.min(800, window.innerWidth * 0.6);
+    let newWidth = e.clientX;
+    
+    if (newWidth < 300) newWidth = 300;
+    if (newWidth > maxWidth) newWidth = maxWidth;
+    
+    document.documentElement.style.setProperty('--left-w', `${newWidth}px`);
+  });
+  
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      resizer.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    }
+  });
 }
 
 function handleGlobalPaste(e) {
