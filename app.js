@@ -138,6 +138,9 @@ TONE RULES (non-negotiable):
 
 Respond in EXACTLY these sections with these exact headings:
 
+### 📜 The equation
+Write the full equation in standard LaTeX notation, wrapped in $$...$$. Do not add any extra text or explanation in this section. Just the math.
+
 ### 🎯 What this equation is saying
 Write 2-3 flowing sentences explaining what this equation achieves in plain English — as if you are describing it to someone at a dinner party who hates math. No symbols. No jargon. Then in one more sentence, name the real-world problem it solves.
 
@@ -1055,21 +1058,8 @@ function renderEquationExplanation(text, originalEq, imageDataUrl) {
   let transcriptCard = '';
   if (imageDataUrl) {
     transcriptCard = `<div class="eq-card c-transcript">
-      <div class="eq-head"><span class="eq-head-icon">📜</span><span class="eq-head-title">The equation</span><span class="eq-head-badge">Image</span></div>
+      <div class="eq-head"><span class="eq-head-icon">🖼️</span><span class="eq-head-title">Image provided</span><span class="eq-head-badge">Image</span></div>
       <div class="eq-display-box"><img src="${imageDataUrl}" style="max-width:100%;max-height:200px;object-fit:contain;" alt="Equation"></div>
-    </div>`;
-  }
-  if (originalEq) {
-    const safeEq = escapeHtml(originalEq);
-    const displayEq = originalEq.includes('$') ? safeEq : `$$${safeEq}$$`;
-    transcriptCard = `<div class="eq-card c-transcript">
-      <div class="eq-head"><span class="eq-head-icon">📜</span><span class="eq-head-title">The equation</span><span class="eq-head-badge">LaTeX</span></div>
-      <div class="eq-display-box"><div id="eq-main-display">${displayEq}</div>
-        <button class="eq-copy-btn" onclick="(function(b){navigator.clipboard.writeText(${JSON.stringify(originalEq)}).then(function(){var o=b.innerHTML;b.textContent='Copied!';setTimeout(function(){b.innerHTML=o;},2000);});})(this)">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-          Copy LaTeX
-        </button>
-      </div>
     </div>`;
   }
 
@@ -1112,6 +1102,8 @@ function renderEquationExplanation(text, originalEq, imageDataUrl) {
 
 function renderEquationSection(heading, body) {
   const h = heading.toLowerCase();
+  if (heading.includes('📜') || h.includes('the equation'))
+    return renderEqCardExtracted(heading, body);
   if (heading.includes('🎯') || h.includes('what this equation'))
     return renderEqCardHero(heading, body);
   if (heading.includes('📖') || h.includes('read it out loud') || h.includes('how to read'))
@@ -1134,6 +1126,24 @@ function renderEquationSection(heading, body) {
     return renderEqCardRoadmap(heading, body);
   // Fallback — generic card
   return renderEqCardGeneric(heading, body);
+}
+
+function renderEqCardExtracted(heading, body) {
+  // Extract just the math in case the AI added extra formatting
+  let latex = body.trim();
+  if (latex.startsWith('$$') && latex.endsWith('$$')) {
+    latex = latex.substring(2, latex.length - 2).trim();
+  }
+  const displayEq = `$$${latex}$$`;
+  return `<div class="eq-card c-transcript">
+    <div class="eq-head"><span class="eq-head-icon">📜</span><span class="eq-head-title">Extracted LaTeX</span><span class="eq-head-badge">LaTeX</span></div>
+    <div class="eq-display-box"><div>${displayEq}</div>
+      <button class="eq-copy-btn" onclick="(function(b){navigator.clipboard.writeText(${JSON.stringify(latex)}).then(function(){var o=b.innerHTML;b.textContent='Copied!';setTimeout(function(){b.innerHTML=o;},2000);});})(this)">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        Copy LaTeX
+      </button>
+    </div>
+  </div>`;
 }
 
 function renderEqCardHero(heading, body) {
