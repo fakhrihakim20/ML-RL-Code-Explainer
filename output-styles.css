@@ -938,6 +938,49 @@
 }
 .eq-acc-item.open .eq-acc-body { display: block; }
 
+/* ── Worked example ── */
+.c-worked { border-left-color: #14b8a6; }
+
+.eq-worked-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.eq-worked-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 14px;
+  background: var(--surface, #f9f9f7);
+  border: 0.5px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+}
+
+.eq-worked-num {
+  width: 24px;
+  height: 24px;
+  background: #14b8a6;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.eq-worked-content {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text, #1a1a18);
+}
+
+[data-theme="dark"] .eq-worked-step { background: var(--bg-elevated, #272725); }
+
 /* ── Intuition ── */
 .c-intuition { border-left-color: #10b981; }
 

@@ -157,6 +157,14 @@ Break the equation into its 3-6 main mathematical terms or operations. For each 
 - How it connects to the other terms
 Number each step. Make the label specific (e.g. "The margin width term: $\\frac{1}{2}\\|w\\|^2$") not vague.
 
+### 📝 Worked example
+Pick small, friendly numbers and walk through the equation from start to finish. Format as numbered steps:
+1. Start by assigning concrete values to every variable (e.g. "Let $x = 3$, $y = 2$").
+2. Show each substitution step with the actual numbers plugged in, using $...$ notation.
+3. Compute the intermediate results — show the arithmetic.
+4. Arrive at the final numerical answer and state what it means in plain English.
+The reader should be able to follow along with a calculator. Make the numbers realistic for the equation's domain.
+
 ### 🌍 Real-world intuition
 Write 2-3 paragraphs of flowing narrative. Use a vivid real-world analogy or story that makes the reader say "Oh, of COURSE it works that way!" In the second paragraph, explain how this equation appears in actual code or software. Mention specific libraries or functions if relevant.
 
@@ -1112,6 +1120,8 @@ function renderEquationSection(heading, body) {
     return renderEqCardSymbols(heading, body);
   if (heading.includes('🔢') || h.includes('step-by-step breakdown') || h.includes('step-by-step'))
     return renderEqCardSteps(heading, body);
+  if (heading.includes('📝') || h.includes('worked example'))
+    return renderEqCardWorkedExample(heading, body);
   if (heading.includes('🌍') || h.includes('real-world intuition') || h.includes('intuition'))
     return renderEqCardIntuition(heading, body);
   if (heading.includes('⚙️') || h.includes('used in practice') || h.includes('how it'))
@@ -1216,6 +1226,47 @@ function renderEqCardSteps(heading, body) {
           <span class="eq-acc-chev">▶</span>
         </div>
         <div class="eq-acc-body">${s.content ? renderMarkdown(s.content) : ''}</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function renderEqCardWorkedExample(heading, body) {
+  const lines = body.split('\n');
+  const steps = [];
+  let i = 0;
+  while (i < lines.length) {
+    const t = lines[i].trim();
+    if (!t) { i++; continue; }
+    const nm = t.match(/^\d+\.\s+(.+)$/);
+    if (nm) {
+      let content = nm[1];
+      i++;
+      while (i < lines.length) {
+        const next = lines[i].trim();
+        if (/^\d+\.\s+/.test(next)) break;
+        if (next) content += '\n' + next;
+        i++;
+      }
+      steps.push(content);
+    } else {
+      if (steps.length > 0) steps[steps.length - 1] += '\n' + t;
+      else steps.push(t);
+      i++;
+    }
+  }
+  if (steps.length === 0) {
+    return `<div class="eq-card c-worked">
+      <div class="eq-head"><span class="eq-head-icon">📝</span><span class="eq-head-title">Worked example</span></div>
+      <div class="eq-card-body">${renderMarkdown(body)}</div>
+    </div>`;
+  }
+  return `<div class="eq-card c-worked">
+    <div class="eq-head"><span class="eq-head-icon">📝</span><span class="eq-head-title">Worked example</span></div>
+    <div class="eq-worked-steps">
+      ${steps.map((step, idx) => `<div class="eq-worked-step">
+        <div class="eq-worked-num"><span>${idx + 1}</span></div>
+        <div class="eq-worked-content">${eqInlineFormat(escapeHtml(step))}</div>
       </div>`).join('')}
     </div>
   </div>`;
