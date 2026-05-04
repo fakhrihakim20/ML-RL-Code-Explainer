@@ -706,3 +706,401 @@
   line-height: 1.68;
   color: var(--text, #1a1a18);
 }
+
+
+/* =============================================================
+   EQUATION EXPLAINER — Card-based output design
+   Each section is an eq-card with a coloured left-border accent.
+   ============================================================= */
+.eq-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 0 16px;
+}
+
+.eq-card {
+  background: var(--card-bg, #ffffff);
+  border: 0.5px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  border-left: 3px solid #6366f1;
+  padding: 18px 20px;
+}
+
+.eq-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 0.5px solid var(--border, #e5e7eb);
+}
+
+.eq-head-icon {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.eq-head-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text, #1a1a18);
+  letter-spacing: -.01em;
+}
+
+.eq-head-badge {
+  margin-left: auto;
+  background: #6366f1;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: .05em;
+}
+
+.eq-card-body {
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--text, #1a1a18);
+}
+.eq-card-body p { margin-bottom: 9px; }
+.eq-card-body p:last-child { margin-bottom: 0; }
+.eq-card-body ul { padding-left: 18px; margin: 6px 0; }
+.eq-card-body li { margin-bottom: 5px; }
+.eq-card-body strong { font-weight: 500; }
+.eq-card-body code {
+  background: var(--surface, #f9f9f7);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 12px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--text, #1a1a18);
+}
+
+/* ── Transcript / The Equation ── */
+.c-transcript { border-left-color: #6366f1; }
+
+.eq-display-box {
+  background: var(--surface, #f9f9f7);
+  border: 0.5px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  overflow-x: auto;
+  position: relative;
+}
+
+.eq-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+  padding: 4px 12px;
+  border: 0.5px solid var(--border, #d9d9d6);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--text-secondary, #787672);
+  cursor: pointer;
+  background: transparent;
+  transition: background .15s;
+  font-family: var(--font-ui, system-ui);
+}
+.eq-copy-btn:hover { background: var(--surface, #f9f9f7); }
+
+/* ── Hero / What this equation is saying ── */
+.c-hero { border-left-color: #3b82f6; }
+
+.eq-hero-body {
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* ── Read aloud ── */
+.c-read { border-left-color: #0ea5e9; }
+
+.eq-read-body {
+  font-style: italic;
+  color: var(--text-secondary, #787672);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+/* ── Symbol dictionary ── */
+.c-symbols { border-left-color: #ec4899; }
+
+.eq-sym-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 9px;
+}
+
+.eq-sym-card {
+  border: 0.5px solid var(--border, #e5e7eb);
+  border-radius: 9px;
+  padding: 12px;
+  background: var(--surface, #f9f9f7);
+}
+
+.eq-sym-glyph {
+  font-size: 15px;
+  font-weight: 500;
+  color: #ec4899;
+  margin-bottom: 7px;
+  min-height: 22px;
+}
+
+.eq-sym-def {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text, #1a1a18);
+}
+
+.eq-sym-analogy {
+  font-size: 11px;
+  color: var(--text-secondary, #787672);
+  font-style: italic;
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 0.5px dashed var(--border, #e5e7eb);
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .eq-sym-card { background: var(--bg-elevated, #272725); }
+[data-theme="dark"] .eq-sym-glyph { color: #f472b6; }
+
+/* ── Steps / Step-by-step breakdown (accordion) ── */
+.c-steps { border-left-color: #f59e0b; }
+
+.eq-step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.eq-acc-item {
+  border: 0.5px solid var(--border, #e5e7eb);
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.eq-acc-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  cursor: pointer;
+  background: var(--surface, #f9f9f7);
+  user-select: none;
+  transition: background .12s;
+}
+.eq-acc-head:hover { background: var(--surface-hover, #f0efeb); }
+
+[data-theme="dark"] .eq-acc-head { background: var(--bg-elevated, #272725); }
+[data-theme="dark"] .eq-acc-head:hover { background: #2e2e2b; }
+
+.eq-step-num {
+  width: 24px;
+  height: 24px;
+  background: #f59e0b;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.eq-step-label {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.eq-acc-chev {
+  font-size: 11px;
+  color: var(--text-secondary, #787672);
+  margin-left: auto;
+  transition: transform .2s;
+  display: inline-block;
+}
+.eq-acc-item.open .eq-acc-chev { transform: rotate(90deg); }
+
+.eq-acc-body {
+  display: none;
+  padding: 13px 14px;
+  font-size: 13px;
+  line-height: 1.72;
+  border-top: 0.5px solid var(--border, #e5e7eb);
+}
+.eq-acc-item.open .eq-acc-body { display: block; }
+
+/* ── Intuition ── */
+.c-intuition { border-left-color: #10b981; }
+
+/* ── Practice / How it's used in practice ── */
+.c-practice { border-left-color: #8b5cf6; }
+
+/* ── Confusion ── */
+.c-confusion { border-left-color: #f97316; }
+
+.eq-conf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.eq-conf-box {
+  background: var(--surface, #f9f9f7);
+  border: 0.5px solid var(--border, #e5e7eb);
+  border-left: 2px solid #f97316;
+  border-radius: 0 8px 8px 0;
+  padding: 12px 14px;
+}
+
+.eq-conf-trigger {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--text, #1a1a18);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.eq-conf-trigger::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: #f97316;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.eq-conf-aha {
+  font-size: 13px;
+  line-height: 1.68;
+  color: var(--text-secondary, #787672);
+}
+
+[data-theme="dark"] .eq-conf-box {
+  background: rgba(124,45,18,0.12);
+  border-color: rgba(194,65,12,0.25);
+  border-left-color: #f97316;
+}
+[data-theme="dark"] .eq-conf-trigger { color: #fb923c; }
+[data-theme="dark"] .eq-conf-aha { color: #fed7aa; }
+
+/* ── Connections ── */
+.c-connections { border-left-color: #06b6d4; }
+
+.eq-conn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.eq-conn-item {
+  padding: 11px 14px;
+  border: 0.5px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  background: var(--surface, #f9f9f7);
+}
+
+.eq-conn-term {
+  font-weight: 500;
+  font-size: 13px;
+  color: #0e7490;
+  margin-bottom: 4px;
+}
+
+.eq-conn-desc {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text-secondary, #787672);
+}
+
+[data-theme="dark"] .eq-conn-item { background: var(--bg-elevated, #272725); }
+[data-theme="dark"] .eq-conn-term { color: #22d3ee; }
+
+/* ── Roadmap ── */
+.c-roadmap { border-left-color: #6366f1; }
+
+.eq-road-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.eq-road-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  position: relative;
+}
+.eq-road-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  top: 30px;
+  bottom: -7px;
+  width: 1.5px;
+  background: var(--border, #d9d9d6);
+  z-index: 0;
+}
+.eq-road-step + .eq-road-step {
+  margin-top: 4px;
+  padding-top: 4px;
+}
+
+.eq-road-num {
+  width: 29px;
+  height: 29px;
+  background: #6366f1;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 500;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.eq-road-text {
+  padding: 4px 0 16px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text, #1a1a18);
+}
+.eq-road-text strong {
+  font-weight: 500;
+  color: #4f46e5;
+}
+
+[data-theme="dark"] .eq-road-text strong { color: #818cf8; }
+
+.eq-road-resource {
+  margin-top: 12px;
+  padding: 11px 14px;
+  background: var(--surface, #f9f9f7);
+  border: 0.5px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--text-secondary, #787672);
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  line-height: 1.6;
+}
+
+[data-theme="dark"] .eq-road-resource {
+  background: var(--bg-elevated, #272725);
+}
