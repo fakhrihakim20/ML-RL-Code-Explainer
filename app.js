@@ -1163,7 +1163,7 @@ function renderEqDifficultySection(heading, body) {
         <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
       <div class="difficulty-row">
-        <span class="difficulty-label">Difficulty:</span>
+        <span class="difficulty-label">Difficulty</span>
         <span class="difficulty-badge difficulty-badge--${badgeClass}">${badgeIcon} ${badgeText}</span>
       </div>
       ${prereqs.length > 0 ? `
@@ -1555,7 +1555,7 @@ function renderDifficultySection(heading, body) {
         <h3 class="exp-section-title">${escapeHtml(clean)}</h3>
       </div>
       <div class="difficulty-row">
-        <span class="difficulty-label">Difficulty:</span>
+        <span class="difficulty-label">Difficulty</span>
         <span class="difficulty-badge difficulty-badge--${badgeClass}">${badgeIcon} ${badgeText}</span>
       </div>
       ${prereqs.length > 0 ? `
