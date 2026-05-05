@@ -1,0 +1,268 @@
+diff --git a/index.html b/index.html
+--- a/index.html
++++ b/index.html
+@@
+-  <script src="app.js"></script>
++  <script src="app.js"></script>
++  <script src="deepseek-addon.js"></script>
+diff --git a/deepseek-addon.js b/deepseek-addon.js
+new file mode 100644
+--- /dev/null
++++ b/deepseek-addon.js
+@@
++// DeepSeek API provider add-on for ML/RL Code Explainer.
++// Loads after app.js and extends the existing API Setup drawer without rewriting app.js.
++(() => {
++  const DEEPSEEK_MODELS = [
++    { value: 'deepseek-v4-flash', label: 'DeepSeek V4 Flash' },
++    { value: 'deepseek-v4-pro', label: 'DeepSeek V4 Pro' }
++  ];
++
++  const qs = (selector) => document.querySelector(selector);
++
++  function getState() {
++    if (typeof STATE === 'undefined') {
++      throw new Error('DeepSeek add-on must load after app.js');
++    }
++    STATE.deepseekToken = localStorage.getItem('ml_deepseek_token') || STATE.deepseekToken || '';
++    STATE.deepseekModel = localStorage.getItem('ml_deepseek_model') || STATE.deepseekModel || 'deepseek-v4-flash';
++    return STATE;
++  }
++
++  function ensureDeepSeekUi() {
++    const tabs = qs('.provider-tabs');
++    if (!tabs || qs('[data-provider="deepseek"]')) return;
++
++    const deepseekTab = document.createElement('button');
++    deepseekTab.className = 'provider-tab';
++    deepseekTab.dataset.provider = 'deepseek';
++    deepseekTab.textContent = '🐋 DeepSeek';
++    tabs.appendChild(deepseekTab);
++
++    const section = document.createElement('div');
++    section.id = 'deepseek-section';
++    section.style.display = 'none';
++    section.innerHTML = `
++      <div class="form-group">
++        <label>DeepSeek API Key</label>
++        <input type="password" id="deepseek-token" placeholder="sk-...">
++      </div>
++      <div class="form-group model-select-group">
++        <label for="deepseek-model">Model</label>
++        <select id="deepseek-model">
++          ${DEEPSEEK_MODELS.map(m => `<option value="${m.value}">${m.label}</option>`).join('')}
++        </select>
++      </div>
++    `;
++
++    const openRouterSection = qs('#or-section');
++    if (openRouterSection) {
++      openRouterSection.insertAdjacentElement('afterend', section);
++    }
++
++    deepseekTab.addEventListener('click', () => setProvider('deepseek'));
++    qs('#deepseek-model')?.addEventListener('change', (event) => {
++      const state = getState();
++      state.deepseekModel = event.target.value;
++      localStorage.setItem('ml_deepseek_model', state.deepseekModel);
++      updateSaveStatus();
++    });
++  }
++
++  const originalSetProvider = window.setProvider || setProvider;
++  window.setProvider = setProvider = function patchedSetProvider(provider) {
++    ensureDeepSeekUi();
++    const state = getState();
++
++    if (provider !== 'deepseek') {
++      originalSetProvider(provider);
++      qs('#deepseek-section') && (qs('#deepseek-section').style.display = 'none');
++      return;
++    }
++
++    state.provider = 'deepseek';
++    localStorage.setItem('ml_provider', 'deepseek');
++    document.querySelectorAll('.provider-tab').forEach((el) => {
++      el.classList.toggle('active', el.dataset.provider === 'deepseek');
++    });
++
++    qs('#hf-section') && (qs('#hf-section').style.display = 'none');
++    qs('#or-section') && (qs('#or-section').style.display = 'none');
++    qs('#gemini-section') && (qs('#gemini-section').style.display = 'none');
++    qs('#deepseek-section') && (qs('#deepseek-section').style.display = 'block');
++
++    const tokenInput = qs('#deepseek-token');
++    const modelSelect = qs('#deepseek-model');
++    if (tokenInput) tokenInput.value = state.deepseekToken;
++    if (modelSelect) modelSelect.value = state.deepseekModel;
++
++    updateSaveStatus();
++    updateHint();
++  };
++
++  const originalUpdateHint = window.updateHint || updateHint;
++  window.updateHint = updateHint = function patchedUpdateHint() {
++    if (getState().provider === 'deepseek') {
++      const hint = qs('#setup-hint');
++      if (hint) {
++        hint.innerHTML = '💡 Get your DeepSeek API key at <a href="https://platform.deepseek.com/api_keys" target="_blank">platform.deepseek.com/api_keys</a>.';
++      }
++      return;
++    }
++    originalUpdateHint();
++  };
++
++  const originalUpdateSaveStatus = window.updateSaveStatus || updateSaveStatus;
++  window.updateSaveStatus = updateSaveStatus = function patchedUpdateSaveStatus() {
++    if (getState().provider === 'deepseek') {
++      const status = qs('#save-status');
++      if (status) {
++        status.textContent = getState().deepseekToken ? `Saved · ${getState().deepseekModel}` : 'No token saved';
++      }
++      return;
++    }
++    originalUpdateSaveStatus();
++  };
++
++  const originalSaveToken = window.saveToken || saveToken;
++  window.saveToken = saveToken = function patchedSaveToken() {
++    const state = getState();
++    if (state.provider !== 'deepseek') {
++      originalSaveToken();
++      return;
++    }
++
++    state.deepseekToken = qs('#deepseek-token')?.value.trim() || '';
++    state.deepseekModel = qs('#deepseek-model')?.value || 'deepseek-v4-flash';
++    localStorage.setItem('ml_deepseek_token', state.deepseekToken);
++    localStorage.setItem('ml_deepseek_model', state.deepseekModel);
++    updateSaveStatus();
++  };
++
++  function buildNumberedCode(code) {
++    return code.split('\n').map((line, index) => `L${index + 1}: ${line}`).join('\n');
++  }
++
++  async function callDeepSeek(systemPrompt, userContent, options = {}) {
++    const state = getState();
++    if (!state.deepseekToken) {
++      throw new Error('Please add your DeepSeek API key in API Setup first.');
++    }
++
++    const response = await fetch('https://api.deepseek.com/chat/completions', {
++      method: 'POST',
++      headers: {
++        'Content-Type': 'application/json',
++        'Authorization': `Bearer ${state.deepseekToken}`
++      },
++      body: JSON.stringify({
++        model: state.deepseekModel || 'deepseek-v4-flash',
++        messages: [
++          { role: 'system', content: systemPrompt },
++          { role: 'user', content: userContent }
++        ],
++        temperature: options.temperature ?? 0.35,
++        stream: false
++      })
++    });
++
++    if (!response.ok) {
++      const errorText = await response.text();
++      throw new Error(`DeepSeek API error ${response.status}: ${errorText}`);
++    }
++
++    const data = await response.json();
++    return data.choices?.[0]?.message?.content || '';
++  }
++
++  const originalRunExplain = window.runExplain || runExplain;
++  window.runExplain = runExplain = async function patchedRunExplain() {
++    if (getState().provider !== 'deepseek') {
++      return originalRunExplain();
++    }
++
++    const code = qs('#code-input')?.value.trim();
++    if (!code) return;
++
++    try {
++      showLoading(true);
++      hideError();
++      const output = await callDeepSeek(SYSTEM_PROMPT_EXPLAIN, buildNumberedCode(code));
++      STATE.explanationData = output;
++      STATE.lastProvider = 'DeepSeek';
++      STATE.lastModel = STATE.deepseekModel;
++      renderExplanation(output);
++      switchResultTab('explanation');
++      qs('#results-badge') && (qs('#results-badge').textContent = `DeepSeek · ${STATE.deepseekModel}`);
++    } catch (error) {
++      showError(error.message || String(error));
++    } finally {
++      showLoading(false);
++    }
++  };
++
++  const originalRunVisualize = window.runVisualize || runVisualize;
++  window.runVisualize = runVisualize = async function patchedRunVisualize() {
++    if (getState().provider !== 'deepseek') {
++      return originalRunVisualize();
++    }
++
++    const code = qs('#code-input')?.value.trim();
++    if (!code) return;
++
++    try {
++      showLoading(true);
++      hideError();
++      const output = await callDeepSeek(SYSTEM_PROMPT_VISUAL, buildNumberedCode(code), { temperature: 0.2 });
++      STATE.visualData = output;
++      STATE.lastProvider = 'DeepSeek';
++      STATE.lastModel = STATE.deepseekModel;
++      renderVisual(output);
++      switchResultTab('visual');
++      qs('#results-badge') && (qs('#results-badge').textContent = `DeepSeek · ${STATE.deepseekModel}`);
++    } catch (error) {
++      showError(error.message || String(error));
++    } finally {
++      showLoading(false);
++    }
++  };
++
++  const originalRunExplainEquation = window.runExplainEquation || runExplainEquation;
++  window.runExplainEquation = runExplainEquation = async function patchedRunExplainEquation() {
++    if (getState().provider !== 'deepseek') {
++      return originalRunExplainEquation();
++    }
++
++    if (STATE.equationInputMode === 'image') {
++      showError('DeepSeek direct API mode currently supports typed equations only in this app. Use Gemini or OpenRouter for image-based equation reading.');
++      return;
++    }
++
++    const equation = qs('#equation-input')?.value.trim();
++    if (!equation) return;
++
++    try {
++      showLoading(true);
++      hideError();
++      const output = await callDeepSeek(SYSTEM_PROMPT_EQUATION, equation, { temperature: 0.25 });
++      STATE.equationData = output;
++      STATE.lastProvider = 'DeepSeek';
++      STATE.lastModel = STATE.deepseekModel;
++      renderEquation(output);
++      switchResultTab('equation');
++      qs('#results-badge') && (qs('#results-badge').textContent = `DeepSeek · ${STATE.deepseekModel}`);
++    } catch (error) {
++      showError(error.message || String(error));
++    } finally {
++      showLoading(false);
++    }
++  };
++
++  document.addEventListener('DOMContentLoaded', () => {
++    ensureDeepSeekUi();
++    const state = getState();
++    if (state.provider === 'deepseek') {
++      setProvider('deepseek');
++    }
++  });
++})();

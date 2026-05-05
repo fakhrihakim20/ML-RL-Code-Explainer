@@ -705,14 +705,15 @@ select option { background: var(--bg); }
 @media (max-width: 1024px) {
   .app-body { grid-template-columns: 1fr; }
   .left-col { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--bd); }
-  .right-col { }
+  .right-col { height: auto; overflow: visible; }
   .app-resizer { display: none; }
   .diagrams-grid { grid-template-columns: 1fr; }
   .app-header { padding: 0 16px; }
   .setup-drawer { width: 100%; top: 0; }
 }
 @media (max-width: 640px) {
-  .app-header { height: 56px; --header-h: 56px; }
+  :root { --header-h: 56px; }
+  .app-header { height: 56px; }
   .left-page-header { padding: 20px 20px 0; }
   .input-panel { padding: 16px 20px 20px; }
   .tab-body { padding: 16px 20px 32px; }
